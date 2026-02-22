@@ -159,3 +159,4 @@ Visit `http://localhost:3000`.
 - Multi-event support
 - Live Google Sheets sync (currently manual CSV import only)
 - CSV export UI (server action is written in `admin/actions.ts`, frontend pending)
+- No Walk in handling (add Admin side UI to handle walk-in participants, immediately marking their status as present)
