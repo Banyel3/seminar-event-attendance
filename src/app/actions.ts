@@ -4,7 +4,8 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { attendFormSchema } from "@/lib/validations";
 
-export async function generateTicket(formData: FormData) {
+// ─── Registration (Sign Up page) ────────────────────────────────────
+export async function registerParticipant(formData: FormData) {
   const raw = {
     name: formData.get("name") as string,
     email: formData.get("email") as string,
@@ -12,65 +13,30 @@ export async function generateTicket(formData: FormData) {
     course: formData.get("course") as string,
   };
 
-  // 1. Zod validate
   const parsed = attendFormSchema.safeParse(raw);
   if (!parsed.success) {
-    const messages = parsed.error.issues.map((e) => e.message).join(", ");
-    return { error: messages };
+    return { error: parsed.error.issues.map((e) => e.message).join(", ") };
   }
 
   const { name, email, section, course } = parsed.data;
 
   try {
-    // 2. Find participant by email (case-insensitive via transform)
-    const participant = await prisma.participant.findUnique({
-      where: { email },
-    });
-
-    // 3. Not found
-    if (!participant) {
+    // Check for duplicate email
+    const existing = await prisma.participant.findUnique({ where: { email } });
+    if (existing) {
       return {
         error:
-          "Email not found in registration list. Please complete the Google Form first.",
+          "This email is already registered. Go to Time In to access your QR ticket.",
+        alreadyRegistered: true,
       };
     }
 
-    // 4. Already attended
-    if (participant.attendedAt) {
-      const date = participant.attendedAt.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      });
-      return {
-        error: `Attendance already recorded on ${date}.`,
-      };
-    }
-
-    // 5. Already has QR → return existing token (view-only)
-    if (participant.qrGeneratedAt && participant.qrToken) {
-      return {
-        success: true,
-        isExisting: true,
-        data: {
-          name: participant.name,
-          email: participant.email,
-          section: participant.section,
-          course: participant.course,
-          token: `wmsu-bscs-seminar:${participant.id}:${participant.qrToken}`,
-        },
-      };
-    }
-
-    // 6. First time → generate token and save
+    // Create participant + generate QR token immediately
     const qrToken = crypto.randomUUID().slice(0, 12);
-
-    const updated = await prisma.participant.update({
-      where: { id: participant.id },
+    const participant = await prisma.participant.create({
       data: {
-        name, // Update name in case they corrected it
+        name,
+        email,
         section,
         course,
         qrGeneratedAt: new Date(),
@@ -80,17 +46,82 @@ export async function generateTicket(formData: FormData) {
 
     return {
       success: true,
-      isExisting: false,
       data: {
-        name: updated.name,
-        email: updated.email,
-        section: updated.section,
-        course: updated.course,
-        token: `wmsu-bscs-seminar:${updated.id}:${qrToken}`,
+        name: participant.name,
+        email: participant.email,
+        section: participant.section,
+        course: participant.course,
+        token: `wmsu-bscs-seminar:${participant.id}:${qrToken}`,
+      },
+    };
+  } catch (err: any) {
+    if (err.code === "P2002") {
+      return {
+        error:
+          "This email is already registered. Go to Time In to access your QR ticket.",
+        alreadyRegistered: true,
+      };
+    }
+    console.error("registerParticipant error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
+// ─── Time In (Attend page — retrieve existing QR by email) ──────────
+export async function getTicket(email: string) {
+  const normalised = email.toLowerCase().trim();
+
+  if (!normalised || !normalised.includes("@")) {
+    return { error: "Please enter a valid email address." };
+  }
+
+  try {
+    const participant = await prisma.participant.findUnique({
+      where: { email: normalised },
+    });
+
+    if (!participant) {
+      return {
+        error:
+          "Email not found. Please register first on the Sign Up page.",
+        notRegistered: true,
+      };
+    }
+
+    if (!participant.qrToken) {
+      return { error: "No QR ticket found for this email. Please contact the organizer." };
+    }
+
+    if (participant.attendedAt) {
+      const date = participant.attendedAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      return {
+        error: `Your attendance was already marked on ${date}. See you at the seminar!`,
+        alreadyAttended: true,
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        name: participant.name,
+        email: participant.email,
+        section: participant.section,
+        course: participant.course,
+        token: `wmsu-bscs-seminar:${participant.id}:${participant.qrToken}`,
       },
     };
   } catch (err) {
-    console.error("generateTicket error:", err);
+    console.error("getTicket error:", err);
     return { error: "An unexpected error occurred. Please try again." };
   }
+}
+
+// ─── Keep old action for admin pre-import flow (backwards compat) ────
+export async function generateTicket(formData: FormData) {
+  return registerParticipant(formData);
 }
