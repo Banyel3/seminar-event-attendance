@@ -171,6 +171,19 @@ export default function VerifyPage() {
             ctx.drawImage(img, 0, 0);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+            // Preprocess: convert to grayscale + binarize (threshold at 140).
+            // Our QR is emerald green (#10B981 → gray ≈ 114) on white (gray = 255).
+            // After binarization, green → black, white → white — clean for jsQR.
+            const px = imageData.data;
+            for (let i = 0; i < px.length; i += 4) {
+                const gray = Math.round(0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]);
+                const val = gray < 140 ? 0 : 255;
+                px[i] = val;
+                px[i + 1] = val;
+                px[i + 2] = val;
+                // alpha unchanged
+            }
+
             const jsQR = (await import("jsqr")).default;
             const result = jsQR(imageData.data, imageData.width, imageData.height, {
                 inversionAttempts: "dontInvert",
