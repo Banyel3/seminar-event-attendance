@@ -41,8 +41,9 @@ export default function VerifyPage() {
     const [cameraActive, setCameraActive] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
-    const readerControlRef = useRef<{ stop: () => void } | null>(null);
     const processingRef = useRef(false);
+    const animFrameRef = useRef<number | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     // ── Upload state ────────────────────────────────────────────────
     const [uploadLoading, setUploadLoading] = useState(false);
@@ -93,10 +94,10 @@ export default function VerifyPage() {
 
     // ── Stop camera ─────────────────────────────────────────────────
     const stopCamera = useCallback(() => {
-        readerControlRef.current?.stop();
-        readerControlRef.current = null;
-
-        // Stop native media stream tracks
+        if (animFrameRef.current !== null) {
+            cancelAnimationFrame(animFrameRef.current);
+            animFrameRef.current = null;
+        }
         const video = videoRef.current;
         if (video?.srcObject) {
             (video.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
@@ -107,7 +108,7 @@ export default function VerifyPage() {
 
     useEffect(() => () => stopCamera(), [stopCamera]);
 
-    // ── Start camera ────────────────────────────────────────────────
+    // ── Start camera (getUserMedia + rAF + jsQR) ─────────────────────
     const startCamera = async () => {
         const isSecure =
             location.protocol === "https:" ||
@@ -125,33 +126,63 @@ export default function VerifyPage() {
         setCameraError(null);
         setScanResult(null);
         processingRef.current = false;
-        setCameraActive(true); // show the <video> element first so it's in DOM
 
         try {
-            // Small delay so React renders the <video> before we attach the stream
-            await new Promise((r) => setTimeout(r, 80));
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 } },
+            });
 
-            const { BrowserQRCodeReader } = await import("@zxing/browser");
-            const reader = new BrowserQRCodeReader();
             const video = videoRef.current!;
+            video.srcObject = stream;
+            await video.play();
+            setCameraActive(true);
 
-            const controls = await reader.decodeFromVideoDevice(
-                undefined, // let browser pick environment camera
-                video,
-                (result, err) => {
-                    if (result) handleQrDecode(result.getText());
-                    // err is a per-frame "not found" — ignore
-                    void err;
+            // Reuse a single off-screen canvas for every frame
+            const canvas = document.createElement("canvas");
+            canvasRef.current = canvas;
+            const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+            const jsQR = (await import("jsqr")).default;
+
+            const tick = () => {
+                if (!videoRef.current?.srcObject) return; // camera stopped
+                if (video.readyState < video.HAVE_ENOUGH_DATA) {
+                    animFrameRef.current = requestAnimationFrame(tick);
+                    return;
                 }
-            );
-            readerControlRef.current = controls;
+
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                // Binarize: green (#10B981 → gray≈114) becomes black; white stays white
+                const px = imageData.data;
+                for (let i = 0; i < px.length; i += 4) {
+                    const g = Math.round(0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]);
+                    const v = g < 140 ? 0 : 255;
+                    px[i] = v; px[i + 1] = v; px[i + 2] = v;
+                }
+
+                const result = jsQR(imageData.data, canvas.width, canvas.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (result && !processingRef.current) {
+                    handleQrDecode(result.data);
+                    return; // stop the loop — handleQrDecode calls stopCamera
+                }
+
+                animFrameRef.current = requestAnimationFrame(tick);
+            };
+
+            animFrameRef.current = requestAnimationFrame(tick);
         } catch (err: unknown) {
             setCameraActive(false);
             const msg = err instanceof Error ? err.message : String(err);
             if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("denied")) {
                 setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
             } else if (msg.toLowerCase().includes("found") || msg.toLowerCase().includes("device")) {
-                setCameraError("No camera found. Please make sure your device has a camera.");
+                setCameraError("No camera found. Make sure your device has a camera.");
             } else {
                 setCameraError(`Camera error: ${msg}`);
             }
