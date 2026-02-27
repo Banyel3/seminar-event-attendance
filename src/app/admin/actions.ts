@@ -343,3 +343,28 @@ export async function exportParticipantsCSV(
 
     return header + rows;
 }
+
+// ─── Participant list for manual fallback ────────────────────────────
+
+export async function getRegisteredParticipants() {
+    const participants = await prisma.participant.findMany({
+        where: { qrToken: { not: null } },
+        orderBy: { name: "asc" },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            section: true,
+            course: true,
+            attendedAt: true,
+        },
+    });
+    return participants.map((p: { id: string; name: string; email: string; section: string; course: string; attendedAt: Date | null }) => ({
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        section: p.section,
+        course: p.course,
+        attended: !!p.attendedAt,
+    }));
+}

@@ -70,7 +70,9 @@ const Tile = ({ value, label }: { value: number; label: string }) => (
 );
 
 export default function AttendPage() {
-    const [isOpen, setIsOpen] = useState(false);
+    // QA MODE: time lock commented out — restore before go-live
+    // const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
     const [timeLeft, setTimeLeft] = useState<TimeLeft>(getTimeLeft());
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
