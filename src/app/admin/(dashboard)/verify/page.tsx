@@ -83,12 +83,17 @@ export default function VerifyPage() {
 
         const result = await verifyQrToken(raw);
         if (!result.success || !result.participant) {
-            toast.error(result.error || "Invalid QR code.");
-            // Reset and restart the camera scan loop so it keeps trying
+            const isFormatError = result.error === "Invalid QR token format.";
+            if (!isFormatError) {
+                // Show toast only for real failures (e.g. participant not found)
+                toast.error(result.error || "Invalid QR code.");
+            }
+            // Format errors = stray/partial QR picked by camera, restart quickly
+            const delay = isFormatError ? 300 : 1500;
             setTimeout(() => {
                 processingRef.current = false;
                 restartLoop?.();
-            }, 1500);
+            }, delay);
             return;
         }
         setScanResult({

@@ -256,12 +256,20 @@ export async function importParticipants(
 
 export async function verifyQrToken(token: string) {
     // Token format: wmsu-bscs-seminar:{participantId}:{qrToken}
-    // Or just the raw qrToken
+    // Use indexOf instead of split so partial scans (missing segments) don't
+    // produce empty strings that cause false format errors.
     let qrToken = token.trim();
 
-    if (qrToken.startsWith("wmsu-bscs-seminar:")) {
-        const parts = qrToken.split(":");
-        qrToken = parts[2] || "";
+    const PREFIX = "wmsu-bscs-seminar:";
+    if (qrToken.startsWith(PREFIX)) {
+        const afterPrefix = qrToken.slice(PREFIX.length);
+        const secondColon = afterPrefix.indexOf(":");
+        if (secondColon >= 0) {
+            qrToken = afterPrefix.slice(secondColon + 1);
+        } else {
+            // Only the prefix + id, no qrToken segment — invalid
+            return { error: "Invalid QR token format." };
+        }
     }
 
     if (!qrToken) {
