@@ -186,8 +186,34 @@ export default function SignUpPage() {
                 <Input id="section" name="section" defaultValue="BSCS 3A" required className="focus-visible:ring-emerald-500" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="course">Course</Label>
-                <Input id="course" name="course" defaultValue="BSCS" required className="focus-visible:ring-emerald-500" />
+                <Label htmlFor="course">College / Course</Label>
+                <select
+                  id="course"
+                  name="course"
+                  required
+                  defaultValue=""
+                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="" disabled>Select your college</option>
+                  <option>College of Law</option>
+                  <option>College of Agriculture</option>
+                  <option>College of Liberal Arts</option>
+                  <option>College of Architecture</option>
+                  <option>College of Nursing</option>
+                  <option>College of Asian & Islamic Studies</option>
+                  <option>College of Computing Studies</option>
+                  <option>College of Forestry & Environmental Studies</option>
+                  <option>College of Criminal Justice Education</option>
+                  <option>College of Home Economics</option>
+                  <option>College of Engineering</option>
+                  <option>College of Medicine</option>
+                  <option>College of Public Administration & Development Studies</option>
+                  <option>College of Sports Science & Physical Education</option>
+                  <option>College of Science and Mathematics</option>
+                  <option>College of Social Work & Community Development</option>
+                  <option>College of Teacher Education</option>
+                  <option>Professional Science Master&apos;s Program</option>
+                </select>
               </div>
             </div>
             <Button
