@@ -74,15 +74,21 @@ export default function VerifyPage() {
 
     useEffect(() => { loadParticipants(); }, [loadParticipants]);
 
-    // ── Handle decoded QR ───────────────────────────────────────────
-    const handleQrDecode = useCallback(async (raw: string) => {
+    // ── Handle decoded QR ─────────────────────────────────────────────────
+    const handleQrDecode = useCallback(async (raw: string, restartLoop?: () => void) => {
         if (processingRef.current) return;
         processingRef.current = true;
+
+        console.log("[QR Scan] decoded:", raw);
 
         const result = await verifyQrToken(raw);
         if (!result.success || !result.participant) {
             toast.error(result.error || "Invalid QR code.");
-            setTimeout(() => { processingRef.current = false; }, 2000);
+            // Reset and restart the camera scan loop so it keeps trying
+            setTimeout(() => {
+                processingRef.current = false;
+                restartLoop?.();
+            }, 1500);
             return;
         }
         setScanResult({
@@ -155,21 +161,19 @@ export default function VerifyPage() {
                 ctx.drawImage(video, 0, 0);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-                // Binarize: green (#10B981 → gray≈114) becomes black; white stays white
-                const px = imageData.data;
-                for (let i = 0; i < px.length; i += 4) {
-                    const g = Math.round(0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]);
-                    const v = g < 140 ? 0 : 255;
-                    px[i] = v; px[i + 1] = v; px[i + 2] = v;
-                }
-
+                // No binarization for live camera — screen-displayed QRs appear at
+                // varying brightness through the lens; jsQR's own adaptive threshold
+                // handles this better. Use attemptBoth to cover normal + inverted QRs.
                 const result = jsQR(imageData.data, canvas.width, canvas.height, {
-                    inversionAttempts: "dontInvert",
+                    inversionAttempts: "attemptBoth",
                 });
 
                 if (result && !processingRef.current) {
-                    handleQrDecode(result.data);
-                    return; // stop the loop — handleQrDecode calls stopCamera
+                    // Pass tick restart fn so errors resume scanning automatically
+                    handleQrDecode(result.data, () => {
+                        animFrameRef.current = requestAnimationFrame(tick);
+                    });
+                    return;
                 }
 
                 animFrameRef.current = requestAnimationFrame(tick);
