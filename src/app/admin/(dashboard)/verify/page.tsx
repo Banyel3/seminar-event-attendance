@@ -10,8 +10,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { verifyQrToken, markAttendance, getRegisteredParticipants } from "@/app/admin/actions";
+import {
+    Card, CardContent, CardHeader, CardTitle, CardDescription,
+} from "@/components/ui/card";
+import {
+    verifyQrToken, markAttendance, getRegisteredParticipants,
+} from "@/app/admin/actions";
 
 type Participant = {
     id: string;
@@ -21,7 +25,6 @@ type Participant = {
     course: string;
     status?: string;
     attended?: boolean;
-    attendedAt?: string | null;
 };
 
 type ScanResult = {
@@ -29,19 +32,17 @@ type ScanResult = {
     alreadyAttended: boolean;
 };
 
-const SCANNER_ID = "html5-qrcode-scanner";
-
 export default function VerifyPage() {
-    // ── Hydration guard: render nothing until client-side ───────────
+    // ── Hydration guard ─────────────────────────────────────────────
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
     // ── Camera state ────────────────────────────────────────────────
     const [cameraActive, setCameraActive] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const readerControlRef = useRef<{ stop: () => void } | null>(null);
     const processingRef = useRef(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const scannerRef = useRef<any>(null);
 
     // ── Upload state ────────────────────────────────────────────────
     const [uploadLoading, setUploadLoading] = useState(false);
@@ -72,7 +73,7 @@ export default function VerifyPage() {
 
     useEffect(() => { loadParticipants(); }, [loadParticipants]);
 
-    // ── Handle decoded QR string ────────────────────────────────────
+    // ── Handle decoded QR ───────────────────────────────────────────
     const handleQrDecode = useCallback(async (raw: string) => {
         if (processingRef.current) return;
         processingRef.current = true;
@@ -88,11 +89,26 @@ export default function VerifyPage() {
             alreadyAttended: result.participant.status === "Attended",
         });
         stopCamera();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Stop camera ─────────────────────────────────────────────────
+    const stopCamera = useCallback(() => {
+        readerControlRef.current?.stop();
+        readerControlRef.current = null;
+
+        // Stop native media stream tracks
+        const video = videoRef.current;
+        if (video?.srcObject) {
+            (video.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
+            video.srcObject = null;
+        }
+        setCameraActive(false);
     }, []);
 
-    // ── Camera start / stop ─────────────────────────────────────────
+    useEffect(() => () => stopCamera(), [stopCamera]);
+
+    // ── Start camera ────────────────────────────────────────────────
     const startCamera = async () => {
-        // Check HTTPS (getUserMedia blocked on HTTP except localhost)
         const isSecure =
             location.protocol === "https:" ||
             location.hostname === "localhost" ||
@@ -100,8 +116,8 @@ export default function VerifyPage() {
 
         if (!isSecure) {
             setCameraError(
-                "Camera requires HTTPS. Access this page via https:// or use localhost. " +
-                "Use the Upload QR or Participant List below instead."
+                "Camera requires HTTPS. Access via https:// or localhost. " +
+                "Use Upload QR or Participant List instead."
             );
             return;
         }
@@ -109,52 +125,47 @@ export default function VerifyPage() {
         setCameraError(null);
         setScanResult(null);
         processingRef.current = false;
-
-        // Dynamically import html5-qrcode to avoid SSR issues
-        const { Html5Qrcode } = await import("html5-qrcode");
-        const scanner = new Html5Qrcode(SCANNER_ID, { verbose: false });
-        scannerRef.current = scanner;
+        setCameraActive(true); // show the <video> element first so it's in DOM
 
         try {
-            await scanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 240, height: 240 } },
-                handleQrDecode,
-                () => { /* per-frame errors ignored */ }
+            // Small delay so React renders the <video> before we attach the stream
+            await new Promise((r) => setTimeout(r, 80));
+
+            const { BrowserQRCodeReader } = await import("@zxing/browser");
+            const reader = new BrowserQRCodeReader();
+            const video = videoRef.current!;
+
+            const controls = await reader.decodeFromVideoDevice(
+                undefined, // let browser pick environment camera
+                video,
+                (result, err) => {
+                    if (result) handleQrDecode(result.getText());
+                    // err is a per-frame "not found" — ignore
+                    void err;
+                }
             );
-            setCameraActive(true);
+            readerControlRef.current = controls;
         } catch (err: unknown) {
+            setCameraActive(false);
             const msg = err instanceof Error ? err.message : String(err);
-            setCameraError(
-                msg.toLowerCase().includes("permission")
-                    ? "Camera permission denied. Please allow camera access in your browser."
-                    : "Could not start camera. Make sure your browser has camera permissions."
-            );
+            if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("denied")) {
+                setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
+            } else if (msg.toLowerCase().includes("found") || msg.toLowerCase().includes("device")) {
+                setCameraError("No camera found. Please make sure your device has a camera.");
+            } else {
+                setCameraError(`Camera error: ${msg}`);
+            }
         }
     };
 
-    const stopCamera = useCallback(() => {
-        setCameraActive(false);
-        const scanner = scannerRef.current;
-        if (scanner?.isScanning) {
-            scanner.stop().catch(() => { /* ignore */ });
-        }
-        scannerRef.current = null;
-    }, []);
-
-    // Stop camera on unmount
-    useEffect(() => () => stopCamera(), [stopCamera]);
-
-    // ── Upload QR image ─────────────────────────────────────────────
+    // ── Upload QR ───────────────────────────────────────────────────
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         e.target.value = "";
-
         setUploadLoading(true);
+
         try {
-            // Load image onto a canvas, then run jsQR on the raw pixel data.
-            // This correctly handles colored QR codes (our QRs are emerald green).
             const url = URL.createObjectURL(file);
             const img = new Image();
             await new Promise<void>((resolve, reject) => {
@@ -171,17 +182,12 @@ export default function VerifyPage() {
             ctx.drawImage(img, 0, 0);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-            // Preprocess: convert to grayscale + binarize (threshold at 140).
-            // Our QR is emerald green (#10B981 → gray ≈ 114) on white (gray = 255).
-            // After binarization, green → black, white → white — clean for jsQR.
+            // Binarise: green (#10B981 → gray≈114) → black; white → white
             const px = imageData.data;
             for (let i = 0; i < px.length; i += 4) {
                 const gray = Math.round(0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]);
                 const val = gray < 140 ? 0 : 255;
-                px[i] = val;
-                px[i + 1] = val;
-                px[i + 2] = val;
-                // alpha unchanged
+                px[i] = val; px[i + 1] = val; px[i + 2] = val;
             }
 
             const jsQR = (await import("jsqr")).default;
@@ -190,22 +196,21 @@ export default function VerifyPage() {
             });
 
             if (!result) {
-                toast.error("No QR code found in the image. Make sure the full QR is visible.");
+                toast.error("No QR code detected. Make sure the full QR is visible.");
                 processingRef.current = false;
                 return;
             }
-
             await handleQrDecode(result.data);
         } catch (err) {
             console.error("Upload QR error:", err);
-            toast.error("Failed to read the image. Please try a different file.");
+            toast.error("Failed to read image. Please try a different file.");
             processingRef.current = false;
         } finally {
             setUploadLoading(false);
         }
     };
 
-    // ── Mark attendance from camera/upload scan ─────────────────────
+    // ── Mark from scan ──────────────────────────────────────────────
     const handleMarkFromScan = async () => {
         if (!scanResult) return;
         setMarking(true);
@@ -219,14 +224,11 @@ export default function VerifyPage() {
             } else {
                 toast.error(result.error || "Failed.");
             }
-        } catch {
-            toast.error("Unexpected error.");
-        } finally {
-            setMarking(false);
-        }
+        } catch { toast.error("Unexpected error."); }
+        finally { setMarking(false); }
     };
 
-    // ── Mark from participant list ───────────────────────────────────
+    // ── Mark from list ──────────────────────────────────────────────
     const handleSelectParticipant = async (p: Participant) => {
         if (p.attended) { toast.info(`${p.name} is already present.`); return; }
         setSelectedId(p.id);
@@ -239,12 +241,8 @@ export default function VerifyPage() {
             } else {
                 toast.error(result.error || "Failed.");
             }
-        } catch {
-            toast.error("Unexpected error.");
-        } finally {
-            setSelectLoading(false);
-            setSelectedId(null);
-        }
+        } catch { toast.error("Unexpected error."); }
+        finally { setSelectLoading(false); setSelectedId(null); }
     };
 
     const filtered = participants.filter((p) =>
@@ -254,7 +252,7 @@ export default function VerifyPage() {
     const notYet = filtered.filter((p) => !p.attended);
     const done = filtered.filter((p) => p.attended);
 
-    // SSR placeholder
+    // ── SSR skeleton ────────────────────────────────────────────────
     if (!mounted) {
         return (
             <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
@@ -264,11 +262,11 @@ export default function VerifyPage() {
         );
     }
 
-    // ── Scan result overlay ─────────────────────────────────────────
+    // ── Scan result view ────────────────────────────────────────────
     if (scanResult) {
         const { participant, alreadyAttended } = scanResult;
         return (
-            <div className="p-4 md:p-8 max-w-lg mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-300">
+            <div className="p-4 md:p-8 max-w-lg mx-auto animate-in fade-in zoom-in-95 duration-300">
                 <Card className={`border-2 ${alreadyAttended ? "border-amber-400" : "border-emerald-400"}`}>
                     <CardHeader className="text-center pb-2">
                         <div className={`mx-auto p-3 rounded-full w-16 h-16 flex items-center justify-center mb-2 ${alreadyAttended ? "bg-amber-100" : "bg-emerald-100"}`}>
@@ -304,6 +302,7 @@ export default function VerifyPage() {
         );
     }
 
+    // ── Main view ───────────────────────────────────────────────────
     return (
         <div className="p-4 md:p-8 space-y-6 max-w-3xl mx-auto">
             <div>
@@ -311,7 +310,7 @@ export default function VerifyPage() {
                 <p className="text-slate-500">Scan, upload, or select a participant to mark as present.</p>
             </div>
 
-            {/* ── Camera + Upload row ────────────────────────────── */}
+            {/* Camera + Upload */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Camera Card */}
                 <Card>
@@ -328,18 +327,36 @@ export default function VerifyPage() {
                         {cameraError && (
                             <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{cameraError}</p>
                         )}
-                        {/* Scanner mount point — kept in DOM for html5-qrcode */}
-                        <div
-                            id={SCANNER_ID}
-                            suppressHydrationWarning
-                            className={`w-full rounded-xl overflow-hidden bg-black ${cameraActive ? "min-h-[220px]" : "hidden"}`}
-                        />
+
+                        {/* Native <video> element — we own it, no black screen */}
+                        <div className={`relative w-full rounded-xl overflow-hidden bg-black ${cameraActive ? "block" : "hidden"}`}
+                            style={{ aspectRatio: "4/3" }}>
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover"
+                            />
+                            {/* Viewfinder overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="w-48 h-48 border-2 border-emerald-400 rounded-lg opacity-80">
+                                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-emerald-400 rounded-tl" />
+                                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-emerald-400 rounded-tr" />
+                                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-emerald-400 rounded-bl" />
+                                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-emerald-400 rounded-br" />
+                                </div>
+                            </div>
+                        </div>
+
                         {!cameraActive && (
-                            <div className="flex flex-col items-center justify-center h-36 bg-slate-900 rounded-xl gap-2">
+                            <div className="flex flex-col items-center justify-center bg-slate-900 rounded-xl gap-2"
+                                style={{ aspectRatio: "4/3" }}>
                                 <Camera className="w-8 h-8 text-slate-500" />
                                 <p className="text-slate-500 text-xs">Camera off</p>
                             </div>
                         )}
+
                         {!cameraActive ? (
                             <Button onClick={startCamera} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
                                 <Camera className="h-4 w-4" /> Start Camera
@@ -362,46 +379,33 @@ export default function VerifyPage() {
                         <button
                             onClick={() => uploadInputRef.current?.click()}
                             disabled={uploadLoading}
-                            className="w-full flex flex-col items-center justify-center h-36 border-2 border-dashed border-slate-300 rounded-xl hover:border-emerald-400 hover:bg-emerald-50/50 transition-all cursor-pointer group"
+                            className="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl hover:border-emerald-400 hover:bg-emerald-50/50 transition-all cursor-pointer group"
+                            style={{ aspectRatio: "4/3" }}
                         >
-                            {uploadLoading ? (
-                                <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-                            ) : (
-                                <>
+                            {uploadLoading
+                                ? <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                                : <>
                                     <ImagePlus className="w-8 h-8 text-slate-400 group-hover:text-emerald-500 transition-colors mb-2" />
                                     <p className="text-sm text-slate-500 group-hover:text-emerald-600">Click to upload QR image</p>
                                     <p className="text-xs text-slate-400 mt-1">PNG, JPG, screenshot</p>
-                                </>
-                            )}
+                                </>}
                         </button>
-                        <input
-                            ref={uploadInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleUpload}
-                        />
-                        <Button
-                            variant="outline"
-                            className="w-full gap-2"
-                            onClick={() => uploadInputRef.current?.click()}
-                            disabled={uploadLoading}
-                        >
+                        <input ref={uploadInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+                        <Button variant="outline" className="w-full gap-2" onClick={() => uploadInputRef.current?.click()} disabled={uploadLoading}>
                             <Upload className="h-4 w-4" />
-                            {uploadLoading ? "Reading QR..." : "Choose Image File"}
+                            {uploadLoading ? "Reading QR..." : "Choose File"}
                         </Button>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* ── Divider ──────────────────────────────────────────── */}
+            {/* Divider */}
             <div className="flex items-center gap-3 text-slate-400 text-sm">
-                <div className="flex-1 h-px bg-slate-200" />
-                OR — Manual Fallback
+                <div className="flex-1 h-px bg-slate-200" />OR — Manual Fallback
                 <div className="flex-1 h-px bg-slate-200" />
             </div>
 
-            {/* ── Participant List ──────────────────────────────────── */}
+            {/* Participant List */}
             <Card>
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -417,12 +421,7 @@ export default function VerifyPage() {
                     </div>
                     <div className="relative mt-3">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <Input
-                            placeholder="Search by name or section..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 focus-visible:ring-emerald-500"
-                        />
+                        <Input placeholder="Search by name or section..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 focus-visible:ring-emerald-500" />
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -438,12 +437,8 @@ export default function VerifyPage() {
                                 <div className="space-y-2">
                                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Not Yet Present ({notYet.length})</p>
                                     {notYet.map((p) => (
-                                        <button
-                                            key={p.id}
-                                            onClick={() => handleSelectParticipant(p)}
-                                            disabled={selectLoading && selectedId === p.id}
-                                            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50 transition-all text-left group active:scale-[0.99]"
-                                        >
+                                        <button key={p.id} onClick={() => handleSelectParticipant(p)} disabled={selectLoading && selectedId === p.id}
+                                            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50 transition-all text-left group active:scale-[0.99]">
                                             <div>
                                                 <p className="font-semibold text-slate-900 group-hover:text-emerald-700">{p.name}</p>
                                                 <p className="text-xs text-slate-400">{p.section} · {p.email}</p>
