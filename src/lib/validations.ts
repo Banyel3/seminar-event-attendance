@@ -16,7 +16,7 @@ export const attendFormSchema = z.object({
     course: z
         .string()
         .min(1, "Course is required")
-        .max(20, "Course is too long"),
+        .max(100, "Course is too long"),
 });
 
 export type AttendFormData = z.infer<typeof attendFormSchema>;
