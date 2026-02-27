@@ -20,7 +20,7 @@ import { getTicket } from "@/app/actions";
 
 // ── Event config ─────────────────────────────────────────────────────
 // March 7, 2026 at 7:00 AM Philippine Time (UTC+8)
-const EVENT_OPEN = new Date("2026-03-07T07:00:00+08:00");
+const EVENT_OPEN = new Date("2026-03-14T07:00:00+08:00");
 
 type TicketData = {
     name: string;
@@ -144,7 +144,7 @@ export default function AttendPage() {
                         BSCS 3A Seminar
                     </h1>
                     <p className="text-lg text-slate-500 mb-8">
-                        Time In opens on <strong className="text-emerald-700">March 7, 2026 at 7:00 AM</strong>
+                        Time In opens on <strong className="text-emerald-700">March 14, 2026 at 7:00 AM</strong>
                     </p>
 
                     {/* Countdown */}
@@ -197,7 +197,7 @@ export default function AttendPage() {
                                     <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.course}</Badge>
                                 </div>
                                 <p className="text-xs text-emerald-700 font-semibold mt-2 border-t pt-2 border-slate-100">
-                                    BSCS 3A Seminar Workshop · Mar 7, 2026
+                                    BSCS 3A Seminar Workshop · Mar 14, 2026
                                 </p>
                             </div>
                         </div>

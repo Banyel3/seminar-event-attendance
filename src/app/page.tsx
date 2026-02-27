@@ -118,12 +118,12 @@ export default function SignUpPage() {
                   <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.course}</Badge>
                 </div>
                 <p className="text-xs text-emerald-700 font-semibold mt-2 border-t pt-2 border-slate-100">
-                  Valid for BSCS 3A Seminar Workshop · Mar 7, 2026
+                  Valid for BSCS 3A Seminar Workshop · Mar 14, 2026
                 </p>
               </div>
             </div>
             <p className="text-sm text-slate-500 text-center">
-              Save this QR and present it to the organizer on <strong>March 7</strong> to mark your attendance.
+              Save this QR and present it to the organizer on <strong>March 14</strong> to mark your attendance.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Button onClick={saveQRCode} className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
@@ -152,7 +152,7 @@ export default function SignUpPage() {
             Seminar Workshop Sign Up
           </CardTitle>
           <CardDescription className="text-base">
-            BSCS 3A · March 7, 2026
+            BSCS 3A · March 14, 2026
           </CardDescription>
         </CardHeader>
         <CardContent>
