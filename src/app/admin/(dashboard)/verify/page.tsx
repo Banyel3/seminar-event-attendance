@@ -149,16 +149,43 @@ export default function VerifyPage() {
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        // Reset input so same file can be re-selected
         e.target.value = "";
 
         setUploadLoading(true);
         try {
-            const { Html5Qrcode } = await import("html5-qrcode");
-            const decoded = await Html5Qrcode.scanFile(file, false);
-            await handleQrDecode(decoded);
-        } catch {
-            toast.error("No QR code found in the image. Please try a clearer photo.");
+            // Load image onto a canvas, then run jsQR on the raw pixel data.
+            // This correctly handles colored QR codes (our QRs are emerald green).
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            await new Promise<void>((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = () => reject(new Error("Failed to load image"));
+                img.src = url;
+            });
+            URL.revokeObjectURL(url);
+
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d")!;
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            const jsQR = (await import("jsqr")).default;
+            const result = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert",
+            });
+
+            if (!result) {
+                toast.error("No QR code found in the image. Make sure the full QR is visible.");
+                processingRef.current = false;
+                return;
+            }
+
+            await handleQrDecode(result.data);
+        } catch (err) {
+            console.error("Upload QR error:", err);
+            toast.error("Failed to read the image. Please try a different file.");
             processingRef.current = false;
         } finally {
             setUploadLoading(false);
