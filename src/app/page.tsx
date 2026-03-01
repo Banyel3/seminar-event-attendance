@@ -194,7 +194,7 @@ export default function SignUpPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="section">Section</Label>
-                <Input id="section" name="section" defaultValue="" required className="focus-visible:ring-emerald-500" />
+                <Input id="section" name="section" placeholder="e.g. BSCS 3A" defaultValue="" required className="focus-visible:ring-emerald-500" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="course">College / Course</Label>
@@ -227,6 +227,9 @@ export default function SignUpPage() {
                 </select>
               </div>
             </div>
+            <p className="text-xs text-slate-400 -mt-1">
+              Follow the format shown in the placeholders, e.g. section as <span className="font-medium text-slate-500">BSCS 3A</span>.
+            </p>
             <Button
               type="submit"
               className="w-full mt-6 bg-emerald-500 hover:bg-emerald-600 text-white transition-all hover:scale-[1.02] active:scale-95"
