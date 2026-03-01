@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import QRCode from "react-qr-code";
 import confetti from "canvas-confetti";
 import * as htmlToImage from "html-to-image";
@@ -99,12 +100,12 @@ export default function SignUpPage() {
         <NavBar />
         <Card className="max-w-md w-full border-emerald-500/20 shadow-lg animate-in fade-in zoom-in-95 duration-500">
           <CardHeader className="text-center pb-2">
-            <div className="mx-auto bg-emerald-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            <div className="mx-auto mb-4">
+              <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={72} height={72} className="rounded-full mx-auto" />
             </div>
             <CardTitle className="text-2xl text-emerald-700">Registration Complete!</CardTitle>
             <CardDescription className="text-emerald-600 font-medium">
-              College of Computing Studies – WMSU
+              Zero Trust Fund Kids
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6 pt-4">
@@ -118,7 +119,7 @@ export default function SignUpPage() {
                   <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.course}</Badge>
                 </div>
                 <p className="text-xs text-emerald-700 font-semibold mt-2 border-t pt-2 border-slate-100">
-                  Valid for BSCS 3A Seminar Workshop · Mar 14, 2026
+                  Zero Trust Fund Kids Seminar Workshop · Mar 14, 2026
                 </p>
               </div>
             </div>
@@ -145,14 +146,17 @@ export default function SignUpPage() {
       <NavBar />
       <Card className="max-w-md md:max-w-lg w-full shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500">
         <CardHeader className="text-center space-y-2">
+          <div className="flex justify-center mb-1">
+            <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={64} height={64} className="rounded-full" />
+          </div>
           <p className="text-sm font-semibold tracking-wider text-emerald-600 uppercase">
-            College of Computing Studies – WMSU
+            Zero Trust Fund Kids
           </p>
           <CardTitle className="text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight">
             Seminar Workshop Sign Up
           </CardTitle>
           <CardDescription className="text-base">
-            BSCS 3A · March 14, 2026
+            March 14, 2026
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -183,7 +187,7 @@ export default function SignUpPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="section">Section</Label>
-                <Input id="section" name="section" defaultValue="BSCS 3A" required className="focus-visible:ring-emerald-500" />
+                <Input id="section" name="section" defaultValue="" required className="focus-visible:ring-emerald-500" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="course">College / Course</Label>

@@ -1,17 +1,23 @@
-# BSCS 3A Seminar Workshop – Ticketed Attendance System
+# Zero Trust Fund Kids – Seminar Workshop Attendance System
 
-A mobile-first web application for managing ticketed attendance at the WMSU College of Computing Studies BSCS 3A Seminar Workshop. Participants self-register, generate a one-time QR ticket, and organizers scan it at the door to mark attendance.
+A mobile-first web application for managing ticketed attendance at the **Zero Trust Fund Kids** Seminar Workshop. Participants self-register, generate a one-time QR ticket, and organizers scan it at the door to mark attendance.
 
 ---
 
 ## Features
 
 ### Participant Side (`/`)
-- Self-service registration form (Name, Email, Section, Course)
+- Self-service registration form (Name, Email, Section, College/Course)
 - Validates against a pre-registered list imported by the admin
 - Generates a **one-time QR ticket** on first submission
-- Returning participants can retrieve their existing QR by email
+- Returning participants can retrieve their existing QR by email (via the Time In page)
 - Save QR as PNG image, confetti celebration on first generation
+- Organization logo displayed throughout for branding
+
+### Time In (`/attend`)
+- Email-based QR ticket retrieval for registered participants
+- Countdown timer before the event opens (time-lock feature, toggleable for QA)
+- Save QR as PNG image
 
 ### Admin Dashboard (`/admin`)
 Protected by a shared admin password. Includes four tabs:
@@ -29,7 +35,7 @@ Protected by a shared admin password. Includes four tabs:
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16 (App Router) |
+| Framework | Next.js 15 (App Router) |
 | Language | TypeScript |
 | Database | Neon PostgreSQL (serverless) |
 | ORM | Prisma 7 + `@prisma/adapter-neon` |
@@ -48,9 +54,11 @@ Protected by a shared admin password. Includes four tabs:
 ```
 src/
 ├── app/
-│   ├── page.tsx                     # Public QR ticket page
-│   ├── actions.ts                   # Public server action (generateTicket)
-│   ├── layout.tsx                   # Root layout with Toaster
+│   ├── page.tsx                     # Public Sign Up / QR ticket page
+│   ├── actions.ts                   # Public server actions (registerParticipant, getTicket)
+│   ├── layout.tsx                   # Root layout with Toaster + metadata (ZTFK branding)
+│   ├── attend/
+│   │   └── page.tsx                 # Time In page (email lookup + QR display)
 │   └── admin/
 │       ├── actions.ts               # All admin server actions
 │       ├── login/page.tsx           # Admin login page
@@ -64,6 +72,8 @@ src/
 │   ├── prisma.ts                    # Prisma + Neon adapter singleton
 │   └── validations.ts               # Zod schemas
 ├── middleware.ts                    # Route protection for /admin/*
+public/
+└── ztfk-logo.png                    # Zero Trust Fund Kids organization logo (favicon + UI)
 prisma/
 └── schema.prisma                    # Participant data model
 ```
@@ -159,4 +169,4 @@ Visit `http://localhost:3000`.
 - Multi-event support
 - Live Google Sheets sync (currently manual CSV import only)
 - CSV export UI (server action is written in `admin/actions.ts`, frontend pending)
-- No Walk in handling (add Admin side UI to handle walk-in participants, immediately marking their status as present)
+- Walk-in handling (add Admin side UI to handle walk-in participants, immediately marking their status as present)

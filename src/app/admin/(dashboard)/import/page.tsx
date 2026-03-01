@@ -34,8 +34,8 @@ export default function ImportCSVPage() {
                     .map((row: any) => ({
                         name: row.name || row.Name || row["Full Name"] || "",
                         email: row.email || row.Email || row["Email Address"] || "",
-                        section: row.section || row.Section || "BSCS 3A",
-                        course: row.course || row.Course || "BSCS",
+                        section: row.section || row.Section || "",
+                        course: row.course || row.Course || "",
                     }))
                     .filter((r) => r.name && r.email);
 
@@ -113,8 +113,8 @@ export default function ImportCSVPage() {
                     <CardContent className="pt-6">
                         <div
                             className={`min-h-[300px] rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${isHovering
-                                    ? "border-emerald-500 bg-emerald-50/50"
-                                    : "border-slate-300 bg-slate-50"
+                                ? "border-emerald-500 bg-emerald-50/50"
+                                : "border-slate-300 bg-slate-50"
                                 }`}
                             onDragOver={(e) => {
                                 e.preventDefault();

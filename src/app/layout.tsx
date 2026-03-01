@@ -15,8 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BSCS 3A Seminar Workshop",
-  description: "Ticketed Attendance with One-Time QR System",
+  title: "Zero Trust Fund Kids – Seminar Workshop",
+  description: "Ticketed Attendance with One-Time QR System | Zero Trust Fund Kids",
+  icons: {
+    icon: "/ztfk-logo.png",
+    apple: "/ztfk-logo.png",
+  },
 };
 
 export default function RootLayout({

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import QRCode from "react-qr-code";
 import * as htmlToImage from "html-to-image";
 import {
@@ -137,11 +138,14 @@ export default function AttendPage() {
                         <CalendarClock className="w-10 h-10 text-emerald-600" />
                     </div>
 
+                    <div className="flex justify-center mb-3">
+                        <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={80} height={80} className="rounded-full" />
+                    </div>
                     <p className="text-sm font-semibold tracking-wider text-emerald-600 uppercase mb-2">
-                        College of Computing Studies – WMSU
+                        Zero Trust Fund Kids
                     </p>
                     <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2 leading-tight">
-                        BSCS 3A Seminar
+                        Seminar Workshop
                     </h1>
                     <p className="text-lg text-slate-500 mb-8">
                         Time In opens on <strong className="text-emerald-700">March 14, 2026 at 7:00 AM</strong>
@@ -197,7 +201,7 @@ export default function AttendPage() {
                                     <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.course}</Badge>
                                 </div>
                                 <p className="text-xs text-emerald-700 font-semibold mt-2 border-t pt-2 border-slate-100">
-                                    BSCS 3A Seminar Workshop · Mar 14, 2026
+                                    Zero Trust Fund Kids Seminar Workshop · Mar 14, 2026
                                 </p>
                             </div>
                         </div>
@@ -221,8 +225,11 @@ export default function AttendPage() {
             <NavBar />
             <Card className="max-w-md w-full shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <CardHeader className="text-center space-y-2">
+                    <div className="flex justify-center mb-1">
+                        <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={64} height={64} className="rounded-full" />
+                    </div>
                     <p className="text-sm font-semibold tracking-wider text-emerald-600 uppercase">
-                        College of Computing Studies – WMSU
+                        Zero Trust Fund Kids
                     </p>
                     <CardTitle className="text-2xl md:text-3xl font-extrabold text-slate-900">
                         Time In

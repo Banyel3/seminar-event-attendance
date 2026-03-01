@@ -58,7 +58,7 @@ export default function OverviewPage() {
         <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard Overview</h1>
-                <p className="text-slate-500">Live statistics for BSCS 3A Seminar Workshop.</p>
+                <p className="text-slate-500">Live statistics for Zero Trust Fund Kids Seminar Workshop.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

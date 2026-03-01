@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, LogOut, LayoutDashboard, Users, FileUp, ScanLine } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -33,11 +34,11 @@ export default function AdminDashboardLayout({
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 border-r border-slate-800">
                 <div className="p-6 border-b border-slate-800 bg-slate-950/50">
-                    <div className="flex items-center gap-2 text-emerald-500 font-bold text-lg">
-                        <ShieldCheck className="w-6 h-6" />
-                        Admin Panel
+                    <div className="flex items-center gap-3 mb-1">
+                        <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={32} height={32} className="rounded-full" />
+                        <span className="text-emerald-500 font-bold text-lg">Admin Panel</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">BSCS 3A Seminar Workshop</p>
+                    <p className="text-xs text-slate-500 mt-1">Zero Trust Fund Kids Seminar Workshop</p>
                 </div>
 
                 <nav className="flex-1 px-4 py-6 space-y-2">
