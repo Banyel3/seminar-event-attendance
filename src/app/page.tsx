@@ -249,8 +249,7 @@ export default function SignUpPage() {
         </CardContent>
         <CardFooter className="justify-center border-t py-4 text-center mt-2 bg-slate-50/50 rounded-b-xl">
           <p className="text-xs text-slate-500">
-            Submitted before with different details?{" "}
-            <Link href="/attend" className="text-emerald-600 hover:underline font-medium">Retrieve via Time In</Link>
+            Registered with different details? Please contact the organizer for assistance.
           </p>
         </CardFooter>
       </Card>
