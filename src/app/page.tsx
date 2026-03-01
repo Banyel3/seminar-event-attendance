@@ -171,14 +171,7 @@ export default function SignUpPage() {
             <Alert variant="destructive" className={`mb-6 ${alreadyRegistered ? "bg-amber-50 border-amber-200 text-amber-800" : "bg-red-50 border-red-200 text-red-800"}`}>
               <AlertCircle className="h-4 w-4" color={alreadyRegistered ? "#D97706" : "#EF4444"} />
               <AlertTitle>{alreadyRegistered ? "Already Registered" : "Error"}</AlertTitle>
-              <AlertDescription>
-                {error}
-                {alreadyRegistered && (
-                  <Link href="/attend" className="ml-2 underline font-semibold text-amber-700 hover:text-amber-900">
-                    Go to Time In →
-                  </Link>
-                )}
-              </AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 

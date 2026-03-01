@@ -21,8 +21,17 @@ export async function registerParticipant(formData: FormData) {
   const { name, email, section, course } = parsed.data;
 
   try {
-    // Check if this email is already in the system
-    const existing = await prisma.participant.findUnique({ where: { email } });
+    // Look up by the normalised (lowercase) email coming from the schema,
+    // but also fall back to a case-insensitive search to handle any records
+    // that were stored before the email-normalisation was added.
+    let existing = await prisma.participant.findUnique({ where: { email } });
+
+    // Fallback: case-insensitive search in case stored email differs in casing
+    if (!existing) {
+      existing = await prisma.participant.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
+      });
+    }
 
     if (existing) {
       // All four fields match → return existing QR ticket (re-submission)
@@ -31,17 +40,16 @@ export async function registerParticipant(formData: FormData) {
       const courseMatch = existing.course.trim().toLowerCase() === course.trim().toLowerCase();
 
       if (nameMatch && sectionMatch && courseMatch) {
-        // Ensure QR token exists (should always be true, but guard anyway)
         const qrToken = existing.qrToken ?? crypto.randomUUID().slice(0, 12);
         if (!existing.qrToken) {
           await prisma.participant.update({
-            where: { email },
+            where: { id: existing.id },
             data: { qrToken, qrGeneratedAt: new Date() },
           });
         }
         return {
           success: true,
-          retrieved: true, // flag so UI can show "Welcome back" variant
+          retrieved: true,
           data: {
             name: existing.name,
             email: existing.email,
@@ -52,10 +60,10 @@ export async function registerParticipant(formData: FormData) {
         };
       }
 
-      // Email matches but other fields differ → reject
+      // Email matches but one or more fields differ → reject with clear message
       return {
         error:
-          "This email is already registered with different details. Go to Time In to retrieve your QR ticket.",
+          "This email is already registered. Some of your details don't match the original registration — please check your name, section, and college, then try again.",
         alreadyRegistered: true,
       };
     }
