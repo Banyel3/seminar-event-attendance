@@ -21,17 +21,46 @@ export async function registerParticipant(formData: FormData) {
   const { name, email, section, course } = parsed.data;
 
   try {
-    // Check for duplicate email
+    // Check if this email is already in the system
     const existing = await prisma.participant.findUnique({ where: { email } });
+
     if (existing) {
+      // All four fields match → return existing QR ticket (re-submission)
+      const nameMatch = existing.name.trim().toLowerCase() === name.trim().toLowerCase();
+      const sectionMatch = existing.section.trim().toLowerCase() === section.trim().toLowerCase();
+      const courseMatch = existing.course.trim().toLowerCase() === course.trim().toLowerCase();
+
+      if (nameMatch && sectionMatch && courseMatch) {
+        // Ensure QR token exists (should always be true, but guard anyway)
+        const qrToken = existing.qrToken ?? crypto.randomUUID().slice(0, 12);
+        if (!existing.qrToken) {
+          await prisma.participant.update({
+            where: { email },
+            data: { qrToken, qrGeneratedAt: new Date() },
+          });
+        }
+        return {
+          success: true,
+          retrieved: true, // flag so UI can show "Welcome back" variant
+          data: {
+            name: existing.name,
+            email: existing.email,
+            section: existing.section,
+            course: existing.course,
+            token: `wmsu-bscs-seminar:${existing.id}:${qrToken}`,
+          },
+        };
+      }
+
+      // Email matches but other fields differ → reject
       return {
         error:
-          "This email is already registered. Go to Time In to access your QR ticket.",
+          "This email is already registered with different details. Go to Time In to retrieve your QR ticket.",
         alreadyRegistered: true,
       };
     }
 
-    // Create participant + generate QR token immediately
+    // New participant — create record and generate QR token
     const qrToken = crypto.randomUUID().slice(0, 12);
     const participant = await prisma.participant.create({
       data: {
@@ -46,6 +75,7 @@ export async function registerParticipant(formData: FormData) {
 
     return {
       success: true,
+      retrieved: false,
       data: {
         name: participant.name,
         email: participant.email,

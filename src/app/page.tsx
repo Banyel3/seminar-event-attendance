@@ -6,7 +6,7 @@ import Image from "next/image";
 import QRCode from "react-qr-code";
 import confetti from "canvas-confetti";
 import * as htmlToImage from "html-to-image";
-import { Loader2, AlertCircle, CheckCircle2, Download, RefreshCcw, Clock, UserPlus } from "lucide-react";
+import { Loader2, AlertCircle, Info, Download, RefreshCcw, Clock, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
+  const [retrieved, setRetrieved] = useState(false); // true = existing QR re-fetched
 
   const qrRef = useRef<HTMLDivElement>(null);
 
@@ -51,6 +52,7 @@ export default function SignUpPage() {
     setLoading(true);
     setError(null);
     setAlreadyRegistered(false);
+    setRetrieved(false);
 
     const formData = new FormData(e.currentTarget);
     try {
@@ -59,6 +61,7 @@ export default function SignUpPage() {
         setError(result.error);
         if ((result as any).alreadyRegistered) setAlreadyRegistered(true);
       } else if (result.success && result.data) {
+        setRetrieved(!!(result as any).retrieved);
         setTicketData(result.data);
       }
     } catch {
@@ -103,9 +106,13 @@ export default function SignUpPage() {
             <div className="mx-auto mb-4">
               <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={72} height={72} className="rounded-full mx-auto" />
             </div>
-            <CardTitle className="text-2xl text-emerald-700">Registration Complete!</CardTitle>
+            <CardTitle className="text-2xl text-emerald-700">
+              {retrieved ? "Welcome back!" : "Registration Complete!"}
+            </CardTitle>
             <CardDescription className="text-emerald-600 font-medium">
-              Zero Trust Fund Kids
+              {retrieved
+                ? "Here's your previously generated QR ticket."
+                : "Zero Trust Fund Kids"}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6 pt-4">
@@ -130,7 +137,7 @@ export default function SignUpPage() {
               <Button onClick={saveQRCode} className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
                 <Download className="w-4 h-4" /> Save QR
               </Button>
-              <Button variant="outline" onClick={() => { setTicketData(null); setError(null); }} className="w-full sm:flex-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-2">
+              <Button variant="outline" onClick={() => { setTicketData(null); setError(null); setRetrieved(false); }} className="w-full sm:flex-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-2">
                 <RefreshCcw className="w-4 h-4" /> Start Over
               </Button>
             </div>
@@ -227,12 +234,20 @@ export default function SignUpPage() {
             >
               {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Registering...</> : "Register & Get QR Ticket"}
             </Button>
+
+            {/* UX hint — re-retrieve */}
+            <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100 text-blue-700">
+              <Info className="w-4 h-4 mt-0.5 shrink-0" />
+              <p className="text-xs leading-relaxed">
+                <strong>Already signed up?</strong> Fill in all your details exactly as before (name, email, section, and college) to retrieve your existing QR ticket.
+              </p>
+            </div>
           </form>
         </CardContent>
         <CardFooter className="justify-center border-t py-4 text-center mt-2 bg-slate-50/50 rounded-b-xl">
           <p className="text-xs text-slate-500">
-            Each email can only be registered once. Already registered?{" "}
-            <Link href="/attend" className="text-emerald-600 hover:underline font-medium">Time In here</Link>
+            Submitted before with different details?{" "}
+            <Link href="/attend" className="text-emerald-600 hover:underline font-medium">Retrieve via Time In</Link>
           </p>
         </CardFooter>
       </Card>
