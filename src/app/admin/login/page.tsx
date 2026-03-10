@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ShieldCheck, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,13 +41,13 @@ export default function AdminLoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
             <Card className="w-full max-w-sm shadow-lg border-slate-200 animate-in fade-in zoom-in-95">
                 <CardHeader className="text-center space-y-4 pb-6">
-                    <div className="mx-auto bg-emerald-100 p-3 rounded-2xl w-14 h-14 flex items-center justify-center">
-                        <ShieldCheck className="w-8 h-8 text-emerald-600" />
+                    <div className="flex justify-center">
+                        <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={72} height={72} className="rounded-full" />
                     </div>
                     <div className="space-y-1">
                         <CardTitle className="text-2xl font-bold text-slate-900">Admin Login</CardTitle>
                         <CardDescription>
-                            BSCS 3A Seminar Workshop
+                            Zero Trust Fund Kids Seminar Workshop
                         </CardDescription>
                     </div>
                 </CardHeader>

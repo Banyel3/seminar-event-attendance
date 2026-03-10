@@ -34,8 +34,8 @@ export const addParticipantSchema = z.object({
 export const importRowSchema = z.object({
     name: z.string().min(1),
     email: z.string().email(),
-    section: z.string().default("BSCS 3A"),
-    course: z.string().default("BSCS"),
+    section: z.string().default(""),
+    course: z.string().default(""),
 });
 
 export const loginSchema = z.object({

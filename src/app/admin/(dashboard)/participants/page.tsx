@@ -35,8 +35,8 @@ export default function ParticipantsPage() {
     // Form fields for Add dialog
     const [addName, setAddName] = useState("");
     const [addEmail, setAddEmail] = useState("");
-    const [addSection, setAddSection] = useState("BSCS 3A");
-    const [addCourse, setAddCourse] = useState("BSCS");
+    const [addSection, setAddSection] = useState("");
+    const [addCourse, setAddCourse] = useState("");
 
     const loadParticipants = async () => {
         setLoading(true);
@@ -79,8 +79,8 @@ export default function ParticipantsPage() {
                 setIsAddOpen(false);
                 setAddName("");
                 setAddEmail("");
-                setAddSection("BSCS 3A");
-                setAddCourse("BSCS");
+                setAddSection("");
+                setAddCourse("");
                 loadParticipants();
             }
         } catch {

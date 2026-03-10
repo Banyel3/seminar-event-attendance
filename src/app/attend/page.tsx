@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+<<<<<<< HEAD
+=======
+import Image from "next/image";
+import QRCode from "react-qr-code";
+import * as htmlToImage from "html-to-image";
+>>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
 import {
     Loader2, AlertCircle, CheckCircle2,
     Clock, UserPlus, CalendarClock,
@@ -109,11 +115,22 @@ export default function AttendPage() {
                     <div className="mx-auto bg-emerald-100 p-4 rounded-3xl w-20 h-20 flex items-center justify-center mb-6 shadow-sm">
                         <CalendarClock className="w-10 h-10 text-emerald-600" />
                     </div>
+<<<<<<< HEAD
+=======
+
+                    <div className="flex justify-center mb-3">
+                        <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={80} height={80} className="rounded-full" />
+                    </div>
+>>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
                     <p className="text-sm font-semibold tracking-wider text-emerald-600 uppercase mb-2">
-                        College of Computing Studies – WMSU
+                        Zero Trust Fund Kids
                     </p>
                     <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2 leading-tight">
+<<<<<<< HEAD
                         Zero Trust Seminar Workshop
+=======
+                        Seminar Workshop
+>>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
                     </h1>
                     <p className="text-lg text-slate-500 mb-8">
                         Event opens on <strong className="text-emerald-700">March 14, 2026 at 7:00 AM</strong>
@@ -151,6 +168,7 @@ export default function AttendPage() {
                             Zero Trust Seminar Workshop · Mar 14, 2026
                         </CardDescription>
                     </CardHeader>
+<<<<<<< HEAD
                     <CardContent className="flex flex-col items-center gap-4 pt-4">
                         <div className="w-full bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
                             <p className="font-bold text-xl text-slate-900">{regData.name}</p>
@@ -158,6 +176,21 @@ export default function AttendPage() {
                             <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
                                 <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{regData.section}</Badge>
                                 <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{regData.course}</Badge>
+=======
+                    <CardContent className="flex flex-col items-center gap-6 pt-4">
+                        <div ref={qrRef} className="p-4 bg-white rounded-2xl border-4 border-emerald-500 shadow-md flex flex-col items-center">
+                            <QRCode value={ticketData.token} size={260} level="H" fgColor="#10B981" className="w-full max-w-[260px] h-auto" />
+                            <div className="mt-4 text-center w-full">
+                                <p className="font-bold text-xl text-slate-900">{ticketData.name}</p>
+                                <p className="text-sm text-slate-500 mb-2">{ticketData.email}</p>
+                                <div className="flex items-center justify-center gap-2 mb-2">
+                                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.section}</Badge>
+                                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.course}</Badge>
+                                </div>
+                                <p className="text-xs text-emerald-700 font-semibold mt-2 border-t pt-2 border-slate-100">
+                                    Zero Trust Fund Kids Seminar Workshop · Mar 14, 2026
+                                </p>
+>>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
                             </div>
                         </div>
                         <p className="text-sm text-slate-500 text-center">
@@ -182,8 +215,11 @@ export default function AttendPage() {
             <NavBar />
             <Card className="max-w-md w-full shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <CardHeader className="text-center space-y-2">
+                    <div className="flex justify-center mb-1">
+                        <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={64} height={64} className="rounded-full" />
+                    </div>
                     <p className="text-sm font-semibold tracking-wider text-emerald-600 uppercase">
-                        College of Computing Studies – WMSU
+                        Zero Trust Fund Kids
                     </p>
                     <CardTitle className="text-2xl md:text-3xl font-extrabold text-slate-900">
                         Check Registration

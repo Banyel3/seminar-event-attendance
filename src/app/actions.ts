@@ -21,17 +21,54 @@ export async function registerParticipant(formData: FormData) {
   const { name, email, section, course } = parsed.data;
 
   try {
-    // Check for duplicate email
-    const existing = await prisma.participant.findUnique({ where: { email } });
+    // Look up by the normalised (lowercase) email coming from the schema,
+    // but also fall back to a case-insensitive search to handle any records
+    // that were stored before the email-normalisation was added.
+    let existing = await prisma.participant.findUnique({ where: { email } });
+
+    // Fallback: case-insensitive search in case stored email differs in casing
+    if (!existing) {
+      existing = await prisma.participant.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
+      });
+    }
+
     if (existing) {
+      // All four fields match → return existing QR ticket (re-submission)
+      const nameMatch = existing.name.trim().toLowerCase() === name.trim().toLowerCase();
+      const sectionMatch = existing.section.trim().toLowerCase() === section.trim().toLowerCase();
+      const courseMatch = existing.course.trim().toLowerCase() === course.trim().toLowerCase();
+
+      if (nameMatch && sectionMatch && courseMatch) {
+        const qrToken = existing.qrToken ?? crypto.randomUUID().slice(0, 12);
+        if (!existing.qrToken) {
+          await prisma.participant.update({
+            where: { id: existing.id },
+            data: { qrToken, qrGeneratedAt: new Date() },
+          });
+        }
+        return {
+          success: true,
+          retrieved: true,
+          data: {
+            name: existing.name,
+            email: existing.email,
+            section: existing.section,
+            course: existing.course,
+            token: `wmsu-bscs-seminar:${existing.id}:${qrToken}`,
+          },
+        };
+      }
+
+      // Email matches but one or more fields differ → reject with clear message
       return {
         error:
-          "This email is already registered. Go to Time In to access your QR ticket.",
+          "This email is already registered. Some of your details don't match the original registration — please check your name, section, and college, then try again.",
         alreadyRegistered: true,
       };
     }
 
-    // Create participant + generate QR token immediately
+    // New participant — create record and generate QR token
     const qrToken = crypto.randomUUID().slice(0, 12);
     const participant = await prisma.participant.create({
       data: {
@@ -46,6 +83,7 @@ export async function registerParticipant(formData: FormData) {
 
     return {
       success: true,
+      retrieved: false,
       data: {
         name: participant.name,
         email: participant.email,
