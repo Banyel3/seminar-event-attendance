@@ -15,17 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-<<<<<<< HEAD
   title: "ztkf-register",
-  description: "Online Attendance Registration – WMSU College of Computing Studies",
-=======
-  title: "Zero Trust Fund Kids – Seminar Workshop",
-  description: "Ticketed Attendance with One-Time QR System | Zero Trust Fund Kids",
+  description: "Online Attendance Registration – Zero Trust Seminar Workshop",
   icons: {
     icon: "/ztfk-logo.png",
     apple: "/ztfk-logo.png",
   },
->>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
 };
 
 export default function RootLayout({

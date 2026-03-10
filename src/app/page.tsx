@@ -2,16 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-<<<<<<< HEAD
-import { Loader2, AlertCircle, CheckCircle2, RefreshCcw, UserPlus } from "lucide-react";
-=======
 import Image from "next/image";
-import QRCode from "react-qr-code";
-import confetti from "canvas-confetti";
-import * as htmlToImage from "html-to-image";
-import { Loader2, AlertCircle, Info, Download, RefreshCcw, Clock, UserPlus } from "lucide-react";
-import { toast } from "sonner";
->>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
+import { Loader2, AlertCircle, CheckCircle2, RefreshCcw, UserPlus, Info } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -32,34 +24,13 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
-<<<<<<< HEAD
   const [registered, setRegistered] = useState<RegistrationData | null>(null);
-=======
-  const [ticketData, setTicketData] = useState<TicketData | null>(null);
-  const [retrieved, setRetrieved] = useState(false); // true = existing QR re-fetched
-
-  const qrRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (ticketData) {
-      const duration = 2500;
-      const end = Date.now() + duration;
-      const frame = () => {
-        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ["#10B981", "#34D399", "#ffffff"] });
-        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ["#10B981", "#34D399", "#ffffff"] });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      };
-      frame();
-    }
-  }, [ticketData]);
->>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setAlreadyRegistered(false);
-    setRetrieved(false);
 
     const formData = new FormData(e.currentTarget);
     try {
@@ -68,17 +39,12 @@ export default function SignUpPage() {
         setError(result.error);
         if ((result as { alreadyRegistered?: boolean }).alreadyRegistered) setAlreadyRegistered(true);
       } else if (result.success && result.data) {
-<<<<<<< HEAD
         setRegistered({
           name: result.data.name,
           email: result.data.email,
           section: result.data.section,
           course: result.data.course,
         });
-=======
-        setRetrieved(!!(result as any).retrieved);
-        setTicketData(result.data);
->>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -106,7 +72,6 @@ export default function SignUpPage() {
             <div className="mx-auto mb-4">
               <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={72} height={72} className="rounded-full mx-auto" />
             </div>
-<<<<<<< HEAD
             <CardTitle className="text-2xl text-emerald-700">You&apos;re Registered!</CardTitle>
             <CardDescription className="text-emerald-600 font-medium">
               Zero Trust Seminar Workshop · Mar 14, 2026
@@ -119,36 +84,11 @@ export default function SignUpPage() {
               <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
                 <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{registered.section}</Badge>
                 <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{registered.course}</Badge>
-=======
-            <CardTitle className="text-2xl text-emerald-700">
-              {retrieved ? "Welcome back!" : "Registration Complete!"}
-            </CardTitle>
-            <CardDescription className="text-emerald-600 font-medium">
-              {retrieved
-                ? "Here's your previously generated QR ticket."
-                : "Zero Trust Fund Kids"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-6 pt-4">
-            <div ref={qrRef} className="p-4 bg-white rounded-2xl border-4 border-emerald-500 shadow-md flex flex-col items-center">
-              <QRCode value={ticketData.token} size={260} level="H" fgColor="#10B981" className="w-full max-w-[260px] h-auto" />
-              <div className="mt-4 text-center w-full">
-                <p className="font-bold text-xl text-slate-900">{ticketData.name}</p>
-                <p className="text-sm text-slate-500 mb-2">{ticketData.email}</p>
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.section}</Badge>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.course}</Badge>
-                </div>
-                <p className="text-xs text-emerald-700 font-semibold mt-2 border-t pt-2 border-slate-100">
-                  Zero Trust Fund Kids Seminar Workshop · Mar 14, 2026
-                </p>
->>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
               </div>
             </div>
             <p className="text-sm text-slate-500 text-center">
               Your registration is confirmed. Attendance will be recorded by the event administrators.
             </p>
-<<<<<<< HEAD
             <Button
               variant="outline"
               onClick={() => { setRegistered(null); setError(null); }}
@@ -156,16 +96,6 @@ export default function SignUpPage() {
             >
               <RefreshCcw className="w-4 h-4" /> Register Another Person
             </Button>
-=======
-            <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <Button onClick={saveQRCode} className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
-                <Download className="w-4 h-4" /> Save QR
-              </Button>
-              <Button variant="outline" onClick={() => { setTicketData(null); setError(null); setRetrieved(false); }} className="w-full sm:flex-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-2">
-                <RefreshCcw className="w-4 h-4" /> Start Over
-              </Button>
-            </div>
->>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
           </CardContent>
         </Card>
       </div>
@@ -188,11 +118,7 @@ export default function SignUpPage() {
             Zero Trust Seminar Workshop
           </CardTitle>
           <CardDescription className="text-base">
-<<<<<<< HEAD
             Sign Up · March 14, 2026
-=======
-            March 14, 2026
->>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -259,23 +185,17 @@ export default function SignUpPage() {
             >
               {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Registering...</> : "Register"}
             </Button>
-
-            {/* UX hint — re-retrieve */}
             <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100 text-blue-700">
               <Info className="w-4 h-4 mt-0.5 shrink-0" />
               <p className="text-xs leading-relaxed">
-                <strong>Already signed up?</strong> Fill in all your details exactly as before (name, email, section, and college) to retrieve your existing QR ticket.
+                <strong>Already registered?</strong> Each email can only be registered once. Contact the organizer if you need assistance.
               </p>
             </div>
           </form>
         </CardContent>
         <CardFooter className="justify-center border-t py-4 text-center mt-2 bg-slate-50/50 rounded-b-xl">
           <p className="text-xs text-slate-500">
-<<<<<<< HEAD
-            Each email can only be registered once.
-=======
             Registered with different details? Please contact the organizer for assistance.
->>>>>>> 8c3c184b028badd86a2be2e5e166464d9e32864e
           </p>
         </CardFooter>
       </Card>
