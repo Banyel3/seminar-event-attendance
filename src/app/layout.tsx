@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { Toaster } from "@/components/ui/sonner";
+import BackgroundTerms from "@/components/BackgroundTerms";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 
-        {/* Background video — slightly darkened + desaturated for moodier look */}
+        {/* 1 ── Background video (no tint, slight darken) */}
         <video
           autoPlay
           muted
@@ -41,14 +42,14 @@ export default function RootLayout({
           aria-hidden="true"
           src="/bg.mp4"
           className="fixed inset-0 w-full h-full object-cover -z-30"
-          style={{ filter: "brightness(0.65) saturate(1.15)" }}
+          style={{ filter: "brightness(0.7)" }}
         />
 
-        {/* Emerald tint to tie the video into the app's green palette */}
-        <div className="fixed inset-0 -z-20 bg-emerald-800/30 mix-blend-multiply" />
+        {/* 2 ── Animated term definitions */}
+        <BackgroundTerms />
 
-        {/* Frosted-glass layer so the UI stays readable */}
-        <div className="fixed inset-0 -z-10 backdrop-blur-sm bg-white/25" />
+        {/* 3 ── Very light frosted-glass layer (keeps UI readable) */}
+        <div className="fixed inset-0 -z-10 backdrop-blur-[2px] bg-white/15" />
 
         {children}
         <Toaster position="top-center" />
