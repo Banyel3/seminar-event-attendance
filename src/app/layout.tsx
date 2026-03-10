@@ -31,18 +31,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* Full-screen background video */}
+
+        {/* Background video — slightly darkened + desaturated for moodier look */}
         <video
           autoPlay
           muted
           loop
           playsInline
           aria-hidden="true"
-          className="fixed inset-0 w-full h-full object-cover -z-10"
           src="/bg.mp4"
+          className="fixed inset-0 w-full h-full object-cover -z-30"
+          style={{ filter: "brightness(0.65) saturate(1.15)" }}
         />
-        {/* Frosted-glass blur overlay so the video doesn't overpower the UI */}
-        <div className="fixed inset-0 -z-10 backdrop-blur-sm bg-white/40" />
+
+        {/* Emerald tint to tie the video into the app's green palette */}
+        <div className="fixed inset-0 -z-20 bg-emerald-800/30 mix-blend-multiply" />
+
+        {/* Frosted-glass layer so the UI stays readable */}
+        <div className="fixed inset-0 -z-10 backdrop-blur-sm bg-white/25" />
 
         {children}
         <Toaster position="top-center" />
