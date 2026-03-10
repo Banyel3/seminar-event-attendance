@@ -1,49 +1,29 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import QRCode from "react-qr-code";
-import confetti from "canvas-confetti";
-import * as htmlToImage from "html-to-image";
-import { Loader2, AlertCircle, CheckCircle2, Download, RefreshCcw, Clock, UserPlus } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, AlertCircle, CheckCircle2, RefreshCcw, UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { registerParticipant } from "./actions";
 
-type TicketData = {
+type RegistrationData = {
   name: string;
   email: string;
   section: string;
   course: string;
-  token: string;
 };
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
-  const [ticketData, setTicketData] = useState<TicketData | null>(null);
-
-  const qrRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (ticketData) {
-      const duration = 2500;
-      const end = Date.now() + duration;
-      const frame = () => {
-        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ["#10B981", "#34D399", "#ffffff"] });
-        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ["#10B981", "#34D399", "#ffffff"] });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      };
-      frame();
-    }
-  }, [ticketData]);
+  const [registered, setRegistered] = useState<RegistrationData | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,9 +36,14 @@ export default function SignUpPage() {
       const result = await registerParticipant(formData);
       if (result.error) {
         setError(result.error);
-        if ((result as any).alreadyRegistered) setAlreadyRegistered(true);
+        if ((result as { alreadyRegistered?: boolean }).alreadyRegistered) setAlreadyRegistered(true);
       } else if (result.success && result.data) {
-        setTicketData(result.data);
+        setRegistered({
+          name: result.data.name,
+          email: result.data.email,
+          section: result.data.section,
+          course: result.data.course,
+        });
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -67,33 +52,17 @@ export default function SignUpPage() {
     }
   };
 
-  const saveQRCode = () => {
-    if (!qrRef.current) return;
-    htmlToImage.toPng(qrRef.current, { backgroundColor: "#ffffff" })
-      .then((dataUrl) => {
-        const link = document.createElement("a");
-        link.download = `QR-Ticket-${ticketData?.name.replace(/\s+/g, "-")}.png`;
-        link.href = dataUrl;
-        link.click();
-        toast.success("QR Code saved!");
-      })
-      .catch(() => toast.error("Failed to save QR code."));
-  };
-
   // ── Nav bar ──────────────────────────────────────────────────────────
   const NavBar = () => (
     <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-6 w-full max-w-xs mx-auto">
       <button className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-white text-emerald-700 font-semibold text-sm shadow-sm">
         <UserPlus className="w-4 h-4" /> Sign Up
       </button>
-      <Link href="/attend" className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-slate-500 hover:text-emerald-600 font-semibold text-sm transition-colors">
-        <Clock className="w-4 h-4" /> Time In
-      </Link>
     </div>
   );
 
-  // ── QR success view ──────────────────────────────────────────────────
-  if (ticketData) {
+  // ── Success view ─────────────────────────────────────────────────────
+  if (registered) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-emerald-500/10 p-4">
         <NavBar />
@@ -102,37 +71,30 @@ export default function SignUpPage() {
             <div className="mx-auto bg-emerald-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mb-4">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
-            <CardTitle className="text-2xl text-emerald-700">Registration Complete!</CardTitle>
+            <CardTitle className="text-2xl text-emerald-700">You&apos;re Registered!</CardTitle>
             <CardDescription className="text-emerald-600 font-medium">
-              College of Computing Studies – WMSU
+              Zero Trust Seminar Workshop · Mar 14, 2026
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center gap-6 pt-4">
-            <div ref={qrRef} className="p-4 bg-white rounded-2xl border-4 border-emerald-500 shadow-md flex flex-col items-center">
-              <QRCode value={ticketData.token} size={260} level="H" fgColor="#10B981" className="w-full max-w-[260px] h-auto" />
-              <div className="mt-4 text-center w-full">
-                <p className="font-bold text-xl text-slate-900">{ticketData.name}</p>
-                <p className="text-sm text-slate-500 mb-2">{ticketData.email}</p>
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.section}</Badge>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{ticketData.course}</Badge>
-                </div>
-                <p className="text-xs text-emerald-700 font-semibold mt-2 border-t pt-2 border-slate-100">
-                  Valid for BSCS 3A Seminar Workshop · Mar 14, 2026
-                </p>
+          <CardContent className="flex flex-col items-center gap-4 pt-4">
+            <div className="w-full bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
+              <p className="font-bold text-xl text-slate-900">{registered.name}</p>
+              <p className="text-sm text-slate-500 mt-1">{registered.email}</p>
+              <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{registered.section}</Badge>
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{registered.course}</Badge>
               </div>
             </div>
             <p className="text-sm text-slate-500 text-center">
-              Save this QR and present it to the organizer on <strong>March 14</strong> to mark your attendance.
+              Your registration is confirmed. Attendance will be recorded by the event administrators.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <Button onClick={saveQRCode} className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
-                <Download className="w-4 h-4" /> Save QR
-              </Button>
-              <Button variant="outline" onClick={() => { setTicketData(null); setError(null); }} className="w-full sm:flex-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-2">
-                <RefreshCcw className="w-4 h-4" /> Start Over
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              onClick={() => { setRegistered(null); setError(null); }}
+              className="w-full text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-2"
+            >
+              <RefreshCcw className="w-4 h-4" /> Register Another Person
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -149,10 +111,10 @@ export default function SignUpPage() {
             College of Computing Studies – WMSU
           </p>
           <CardTitle className="text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight">
-            Seminar Workshop Sign Up
+            Zero Trust Seminar Workshop
           </CardTitle>
           <CardDescription className="text-base">
-            BSCS 3A · March 14, 2026
+            Sign Up · March 14, 2026
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -200,17 +162,17 @@ export default function SignUpPage() {
                   <option>College of Liberal Arts</option>
                   <option>College of Architecture</option>
                   <option>College of Nursing</option>
-                  <option>College of Asian & Islamic Studies</option>
+                  <option>College of Asian &amp; Islamic Studies</option>
                   <option>College of Computing Studies</option>
-                  <option>College of Forestry & Environmental Studies</option>
+                  <option>College of Forestry &amp; Environmental Studies</option>
                   <option>College of Criminal Justice Education</option>
                   <option>College of Home Economics</option>
                   <option>College of Engineering</option>
                   <option>College of Medicine</option>
-                  <option>College of Public Administration & Development Studies</option>
-                  <option>College of Sports Science & Physical Education</option>
+                  <option>College of Public Administration &amp; Development Studies</option>
+                  <option>College of Sports Science &amp; Physical Education</option>
                   <option>College of Science and Mathematics</option>
-                  <option>College of Social Work & Community Development</option>
+                  <option>College of Social Work &amp; Community Development</option>
                   <option>College of Teacher Education</option>
                   <option>Professional Science Master&apos;s Program</option>
                 </select>
@@ -221,14 +183,13 @@ export default function SignUpPage() {
               className="w-full mt-6 bg-emerald-500 hover:bg-emerald-600 text-white transition-all hover:scale-[1.02] active:scale-95"
               disabled={loading}
             >
-              {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Registering...</> : "Register & Get QR Ticket"}
+              {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Registering...</> : "Register"}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center border-t py-4 text-center mt-2 bg-slate-50/50 rounded-b-xl">
           <p className="text-xs text-slate-500">
-            Each email can only be registered once. Already registered?{" "}
-            <Link href="/attend" className="text-emerald-600 hover:underline font-medium">Time In here</Link>
+            Each email can only be registered once.
           </p>
         </CardFooter>
       </Card>

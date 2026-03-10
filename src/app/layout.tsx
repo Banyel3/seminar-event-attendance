@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BSCS 3A Seminar Workshop",
-  description: "Ticketed Attendance with One-Time QR System",
+  title: "ztkf-register",
+  description: "Online Attendance Registration – WMSU College of Computing Studies",
 };
 
 export default function RootLayout({
