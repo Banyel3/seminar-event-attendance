@@ -30,9 +30,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* Full-screen background video */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          aria-hidden="true"
+          className="fixed inset-0 w-full h-full object-cover -z-10"
+          src="/bg.mp4"
+        />
+        {/* Frosted-glass blur overlay so the video doesn't overpower the UI */}
+        <div className="fixed inset-0 -z-10 backdrop-blur-sm bg-white/40" />
+
         {children}
         <Toaster position="top-center" />
       </body>
