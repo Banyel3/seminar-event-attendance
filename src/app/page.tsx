@@ -53,9 +53,8 @@ export default function SignUpPage() {
     }
   };
 
-  // ── Nav bar ──────────────────────────────────────────────────────────
   const NavBar = () => (
-    <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-6 w-full max-w-xs mx-auto">
+    <div className="flex gap-2 p-1 bg-white/60 backdrop-blur-sm rounded-xl mb-6 w-full max-w-xs mx-auto shadow-sm">
       <button className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-white text-emerald-700 font-semibold text-sm shadow-sm">
         <UserPlus className="w-4 h-4" /> Sign Up
       </button>
@@ -65,9 +64,9 @@ export default function SignUpPage() {
   // ── Success view ─────────────────────────────────────────────────────
   if (registered) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-emerald-500/10 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <NavBar />
-        <Card className="max-w-md w-full border-emerald-500/20 shadow-lg animate-in fade-in zoom-in-95 duration-500">
+        <Card className="max-w-md w-full border-emerald-500/20 shadow-lg animate-in fade-in zoom-in-95 duration-500 bg-white/90 backdrop-blur-md">
           <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4">
               <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={72} height={72} className="rounded-full mx-auto" />
@@ -104,9 +103,9 @@ export default function SignUpPage() {
 
   // ── Registration form ────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <NavBar />
-      <Card className="max-w-md md:max-w-lg w-full shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Card className="max-w-md md:max-w-lg w-full shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white/90 backdrop-blur-md">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-1">
             <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={64} height={64} className="rounded-full" />

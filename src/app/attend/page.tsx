@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getTicket } from "@/app/actions";
 
-// ── Event config ──────────────────────────────────────────────────────
 const EVENT_OPEN = new Date("2026-03-14T07:00:00+08:00");
 
 type RegistrationData = {
@@ -39,7 +38,7 @@ function getTimeLeft(): TimeLeft {
 }
 
 const NavBar = () => (
-    <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-6 w-full max-w-xs mx-auto">
+    <div className="flex gap-2 p-1 bg-white/60 backdrop-blur-sm rounded-xl mb-6 w-full max-w-xs mx-auto shadow-sm">
         <Link href="/" className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-slate-500 hover:text-emerald-600 font-semibold text-sm transition-colors">
             <UserPlus className="w-4 h-4" /> Sign Up
         </Link>
@@ -50,7 +49,7 @@ const NavBar = () => (
 );
 
 const Tile = ({ value, label }: { value: number; label: string }) => (
-    <div className="flex flex-col items-center bg-white rounded-2xl px-5 py-4 shadow-md min-w-[72px]">
+    <div className="flex flex-col items-center bg-white/80 backdrop-blur-sm rounded-2xl px-5 py-4 shadow-md min-w-[72px]">
         <span className="text-4xl font-extrabold text-emerald-600 tabular-nums">{String(value).padStart(2, "0")}</span>
         <span className="text-xs text-slate-500 uppercase tracking-widest mt-1">{label}</span>
     </div>
@@ -100,34 +99,33 @@ export default function AttendPage() {
         }
     };
 
-    // ── Coming Soon ──────────────────────────────────────────────────────
     if (!isOpen) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 via-slate-50 to-emerald-100 p-4">
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
                 <NavBar />
                 <div className="text-center max-w-lg mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <div className="mx-auto bg-emerald-100 p-4 rounded-3xl w-20 h-20 flex items-center justify-center mb-6 shadow-sm">
+                    <div className="mx-auto bg-white/70 backdrop-blur-sm p-4 rounded-3xl w-20 h-20 flex items-center justify-center mb-6 shadow-sm">
                         <CalendarClock className="w-10 h-10 text-emerald-600" />
                     </div>
-                    <p className="text-sm font-semibold tracking-wider text-emerald-600 uppercase mb-2">
+                    <p className="text-sm font-semibold tracking-wider text-emerald-700 uppercase mb-2 drop-shadow">
                         Zero Trust Fund Kids
                     </p>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2 leading-tight">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2 leading-tight drop-shadow">
                         Zero Trust Seminar Workshop
                     </h1>
-                    <p className="text-lg text-slate-500 mb-8">
+                    <p className="text-lg text-slate-700 mb-8 drop-shadow-sm">
                         Event opens on <strong className="text-emerald-700">March 14, 2026 at 7:00 AM</strong>
                     </p>
                     <div className="flex items-center justify-center gap-3 mb-10 flex-wrap">
                         <Tile value={timeLeft.days} label="Days" />
-                        <span className="text-3xl font-bold text-slate-400 pb-4">:</span>
+                        <span className="text-3xl font-bold text-slate-600 pb-4">:</span>
                         <Tile value={timeLeft.hours} label="Hours" />
-                        <span className="text-3xl font-bold text-slate-400 pb-4">:</span>
+                        <span className="text-3xl font-bold text-slate-600 pb-4">:</span>
                         <Tile value={timeLeft.minutes} label="Mins" />
-                        <span className="text-3xl font-bold text-slate-400 pb-4">:</span>
+                        <span className="text-3xl font-bold text-slate-600 pb-4">:</span>
                         <Tile value={timeLeft.seconds} label="Secs" />
                     </div>
-                    <p className="text-slate-500 text-sm">
+                    <p className="text-slate-700 text-sm drop-shadow-sm">
                         Not registered yet?{" "}
                         <Link href="/" className="text-emerald-600 font-semibold hover:underline">Sign up now →</Link>
                     </p>
@@ -136,12 +134,11 @@ export default function AttendPage() {
         );
     }
 
-    // ── Registration found ───────────────────────────────────────────────
     if (regData) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-emerald-500/10 p-4">
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
                 <NavBar />
-                <Card className="max-w-md w-full border-emerald-500/20 shadow-lg animate-in fade-in zoom-in-95 duration-500">
+                <Card className="max-w-md w-full border-emerald-500/20 shadow-lg animate-in fade-in zoom-in-95 duration-500 bg-white/90 backdrop-blur-md">
                     <CardHeader className="text-center pb-2">
                         <div className="mx-auto bg-emerald-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mb-4">
                             <CheckCircle2 className="w-10 h-10 text-emerald-600" />
@@ -176,11 +173,10 @@ export default function AttendPage() {
         );
     }
 
-    // ── Email lookup form ────────────────────────────────────────────────
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4">
             <NavBar />
-            <Card className="max-w-md w-full shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <Card className="max-w-md w-full shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white/90 backdrop-blur-md">
                 <CardHeader className="text-center space-y-2">
                     <p className="text-sm font-semibold tracking-wider text-emerald-600 uppercase">
                         Zero Trust Fund Kids
