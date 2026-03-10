@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { Loader2, AlertCircle, CheckCircle2, RefreshCcw, UserPlus, Info } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2, RefreshCcw, Info } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -53,45 +52,36 @@ export default function SignUpPage() {
     }
   };
 
-  const NavBar = () => (
-    <div className="flex gap-2 p-1 bg-white/60 backdrop-blur-sm rounded-xl mb-6 w-full max-w-xs mx-auto shadow-sm">
-      <button className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-white text-emerald-700 font-semibold text-sm shadow-sm">
-        <UserPlus className="w-4 h-4" /> Sign Up
-      </button>
-    </div>
-  );
-
   // ── Success view ─────────────────────────────────────────────────────
   if (registered) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <NavBar />
-        <Card className="max-w-md w-full border-emerald-500/20 shadow-lg animate-in fade-in zoom-in-95 duration-500 bg-white/90 backdrop-blur-md">
+        <Card className="max-w-md w-full border border-white/30 shadow-2xl animate-in fade-in zoom-in-95 duration-500 bg-white/20 backdrop-blur-md">
           <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4">
               <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={72} height={72} className="rounded-full mx-auto" />
             </div>
-            <CardTitle className="text-2xl text-emerald-700">You&apos;re Registered!</CardTitle>
-            <CardDescription className="text-emerald-600 font-medium">
+            <CardTitle className="text-2xl text-white drop-shadow">You&apos;re Registered!</CardTitle>
+            <CardDescription className="text-emerald-300 font-medium">
               Zero Trust Seminar Workshop · Mar 14, 2026
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4 pt-4">
-            <div className="w-full bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
-              <p className="font-bold text-xl text-slate-900">{registered.name}</p>
-              <p className="text-sm text-slate-500 mt-1">{registered.email}</p>
+            <div className="w-full bg-white/20 rounded-xl p-4 text-center border border-white/20">
+              <p className="font-bold text-xl text-white">{registered.name}</p>
+              <p className="text-sm text-white/70 mt-1">{registered.email}</p>
               <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
-                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{registered.section}</Badge>
-                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{registered.course}</Badge>
+                <Badge variant="secondary" className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">{registered.section}</Badge>
+                <Badge variant="secondary" className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">{registered.course}</Badge>
               </div>
             </div>
-            <p className="text-sm text-slate-500 text-center">
+            <p className="text-sm text-white/70 text-center">
               Your registration is confirmed. Attendance will be recorded by the event administrators.
             </p>
             <Button
               variant="outline"
               onClick={() => { setRegistered(null); setError(null); }}
-              className="w-full text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-2"
+              className="w-full border-white/30 text-white hover:bg-white/20 bg-transparent gap-2"
             >
               <RefreshCcw className="w-4 h-4" /> Register Another Person
             </Button>
@@ -104,26 +94,26 @@ export default function SignUpPage() {
   // ── Registration form ────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <NavBar />
-      <Card className="max-w-md md:max-w-lg w-full shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white/90 backdrop-blur-md">
+      {/* Glassmorphic card — bg video visible through it */}
+      <Card className="max-w-md md:max-w-lg w-full shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white/15 backdrop-blur-md border border-white/25">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-1">
             <Image src="/ztfk-logo.png" alt="Zero Trust Fund Kids" width={64} height={64} className="rounded-full" />
           </div>
-          <p className="text-sm font-semibold tracking-wider text-emerald-600 uppercase">
+          <p className="text-sm font-semibold tracking-wider text-emerald-300 uppercase">
             Zero Trust Fund Kids
           </p>
-          <CardTitle className="text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight">
+          <CardTitle className="text-2xl md:text-3xl font-extrabold text-white leading-tight drop-shadow">
             Zero Trust Seminar Workshop
           </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-base text-white/70">
             Sign Up · March 14, 2026
           </CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
-            <Alert variant="destructive" className={`mb-6 ${alreadyRegistered ? "bg-amber-50 border-amber-200 text-amber-800" : "bg-red-50 border-red-200 text-red-800"}`}>
-              <AlertCircle className="h-4 w-4" color={alreadyRegistered ? "#D97706" : "#EF4444"} />
+            <Alert variant="destructive" className={`mb-6 ${alreadyRegistered ? "bg-amber-500/20 border-amber-400/40 text-amber-200" : "bg-red-500/20 border-red-400/40 text-red-200"}`}>
+              <AlertCircle className="h-4 w-4" />
               <AlertTitle>{alreadyRegistered ? "Already Registered" : "Error"}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -131,69 +121,65 @@ export default function SignUpPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" name="name" placeholder="Juan Dela Cruz" required className="focus-visible:ring-emerald-500" />
+              <Label htmlFor="name" className="text-white font-semibold">Full Name</Label>
+              <Input id="name" name="name" placeholder="Juan Dela Cruz" required
+                className="bg-white/35 border-white/40 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-400" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input id="email" name="email" type="email" placeholder="juan@wmsu.edu.ph" required className="focus-visible:ring-emerald-500" />
+              <Label htmlFor="email" className="text-white font-semibold">Email Address</Label>
+              <Input id="email" name="email" type="email" placeholder="juan@wmsu.edu.ph" required
+                className="bg-white/35 border-white/40 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-400" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="section">Section</Label>
-                <Input id="section" name="section" placeholder="e.g. BSCS 3A" defaultValue="" required className="focus-visible:ring-emerald-500" />
+                <Label htmlFor="section" className="text-white font-semibold">Section</Label>
+                <Input id="section" name="section" placeholder="e.g. BSCS 3A" defaultValue="" required
+                  className="bg-white/35 border-white/40 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-400" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="course">College / Course</Label>
-                <select
-                  id="course"
-                  name="course"
-                  required
-                  defaultValue=""
-                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value="" disabled>Select your college</option>
-                  <option>College of Law</option>
-                  <option>College of Agriculture</option>
-                  <option>College of Liberal Arts</option>
-                  <option>College of Architecture</option>
-                  <option>College of Nursing</option>
-                  <option>College of Asian &amp; Islamic Studies</option>
-                  <option>College of Computing Studies</option>
-                  <option>College of Forestry &amp; Environmental Studies</option>
-                  <option>College of Criminal Justice Education</option>
-                  <option>College of Home Economics</option>
-                  <option>College of Engineering</option>
-                  <option>College of Medicine</option>
-                  <option>College of Public Administration &amp; Development Studies</option>
-                  <option>College of Sports Science &amp; Physical Education</option>
-                  <option>College of Science and Mathematics</option>
-                  <option>College of Social Work &amp; Community Development</option>
-                  <option>College of Teacher Education</option>
-                  <option>Professional Science Master&apos;s Program</option>
+                <Label htmlFor="course" className="text-white font-semibold">College / Course</Label>
+                <select id="course" name="course" required defaultValue=""
+                  className="w-full h-9 rounded-md border border-white/40 bg-white/35 px-3 py-1 text-sm text-slate-900 shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                  <option value="" disabled className="text-slate-800">Select your college</option>
+                  <option className="text-slate-800">College of Law</option>
+                  <option className="text-slate-800">College of Agriculture</option>
+                  <option className="text-slate-800">College of Liberal Arts</option>
+                  <option className="text-slate-800">College of Architecture</option>
+                  <option className="text-slate-800">College of Nursing</option>
+                  <option className="text-slate-800">College of Asian &amp; Islamic Studies</option>
+                  <option className="text-slate-800">College of Computing Studies</option>
+                  <option className="text-slate-800">College of Forestry &amp; Environmental Studies</option>
+                  <option className="text-slate-800">College of Criminal Justice Education</option>
+                  <option className="text-slate-800">College of Home Economics</option>
+                  <option className="text-slate-800">College of Engineering</option>
+                  <option className="text-slate-800">College of Medicine</option>
+                  <option className="text-slate-800">College of Public Administration &amp; Development Studies</option>
+                  <option className="text-slate-800">College of Sports Science &amp; Physical Education</option>
+                  <option className="text-slate-800">College of Science and Mathematics</option>
+                  <option className="text-slate-800">College of Social Work &amp; Community Development</option>
+                  <option className="text-slate-800">College of Teacher Education</option>
+                  <option className="text-slate-800">Professional Science Master&apos;s Program</option>
                 </select>
               </div>
             </div>
-            <p className="text-xs text-slate-400 -mt-1">
-              Follow the format shown in the placeholders, e.g. section as <span className="font-medium text-slate-500">BSCS 3A</span>.
+            <p className="text-xs text-white/40 -mt-1">
+              Follow the format shown in the placeholders, e.g. section as <span className="font-medium text-white/60">BSCS 3A</span>.
             </p>
-            <Button
-              type="submit"
-              className="w-full mt-6 bg-emerald-500 hover:bg-emerald-600 text-white transition-all hover:scale-[1.02] active:scale-95"
-              disabled={loading}
-            >
+            <Button type="submit"
+              className="w-full mt-6 bg-emerald-500 hover:bg-emerald-400 text-white transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-emerald-900/40"
+              disabled={loading}>
               {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Registering...</> : "Register"}
             </Button>
-            <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100 text-blue-700">
-              <Info className="w-4 h-4 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-white/10 border border-white/15 text-white/70">
+              <Info className="w-4 h-4 mt-0.5 shrink-0 text-emerald-300" />
               <p className="text-xs leading-relaxed">
-                <strong>Already registered?</strong> Each email can only be registered once. Contact the organizer if you need assistance.
+                <strong className="text-white">Already registered?</strong> Each email can only be registered once. Contact the organizer if you need assistance.
               </p>
             </div>
           </form>
         </CardContent>
-        <CardFooter className="justify-center border-t py-4 text-center mt-2 bg-slate-50/50 rounded-b-xl">
-          <p className="text-xs text-slate-500">
+        <CardFooter className="justify-center border-t border-white/15 py-4 text-center mt-2">
+          <p className="text-xs text-white/50">
             Registered with different details? Please contact the organizer for assistance.
           </p>
         </CardFooter>
