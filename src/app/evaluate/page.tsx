@@ -3,7 +3,12 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Loader2, AlertCircle, CheckCircle2, ClipboardCheck } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  ClipboardCheck,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -69,7 +74,8 @@ export default function EvaluatePage() {
         setError(result.error);
         if ((result as { notRegistered?: boolean }).notRegistered)
           setNotRegistered(true);
-        if ((result as { notPresent?: boolean }).notPresent) setNotPresent(true);
+        if ((result as { notPresent?: boolean }).notPresent)
+          setNotPresent(true);
         if ((result as { alreadyEvaluated?: boolean }).alreadyEvaluated)
           setAlreadyEvaluated(true);
       } else if (result.success && result.data) {
@@ -150,8 +156,8 @@ export default function EvaluatePage() {
               </div>
             </div>
             <p className="text-sm text-white/70 text-center">
-              Thank you. Your evaluation is recorded and your certificate can now
-              be processed.
+              Thank you. Your evaluation is recorded and your certificate can
+              now be processed.
             </p>
           </CardContent>
         </Card>

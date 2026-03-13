@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { attendFormSchema } from "@/lib/validations";
 import { validateCheckinToken, validateEvalToken } from "@/lib/checkin";
+import { getMeetEventId, addAttendeeToEvent } from "@/lib/google-calendar";
 
 // ─── Registration (Sign Up page) ────────────────────────────────────
 export async function registerParticipant(formData: FormData) {
@@ -64,6 +65,12 @@ export async function registerParticipant(formData: FormData) {
             data: { qrToken, qrGeneratedAt: new Date() },
           });
         }
+        // Fire-and-forget — never blocks registration
+        getMeetEventId()
+          .then((eventId) => {
+            if (eventId) addAttendeeToEvent(eventId, existing.email, existing.name);
+          })
+          .catch(() => {});
         return {
           success: true,
           retrieved: true,
@@ -98,6 +105,13 @@ export async function registerParticipant(formData: FormData) {
         qrToken,
       },
     });
+
+    // Fire-and-forget — add to Meet event guest list without blocking registration
+    getMeetEventId()
+      .then((eventId) => {
+        if (eventId) addAttendeeToEvent(eventId, participant.email, participant.name);
+      })
+      .catch(() => {});
 
     return {
       success: true,

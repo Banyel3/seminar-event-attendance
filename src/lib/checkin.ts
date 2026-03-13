@@ -60,7 +60,10 @@ export function validateCheckinToken(token: string): {
 export function generateEvalToken(): string {
   const secret = process.env.ADMIN_PASSWORD ?? "seminar-checkin-secret";
   const payload = "evaluation";
-  const hmac = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  const hmac = crypto
+    .createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
   return `eval.${hmac}`;
 }
 

@@ -12,6 +12,7 @@ import {
   ScanLine,
   QrCode,
   ClipboardCheck,
+  Video,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ export default function AdminDashboardLayout({
     { name: "Verify QR", href: "/admin/verify", icon: ScanLine },
     { name: "Self Check-In", href: "/admin/checkin", icon: QrCode },
     { name: "Evaluation QR", href: "/admin/evaluate", icon: ClipboardCheck },
+    { name: "Google Meet", href: "/admin/google-meet", icon: Video },
   ];
 
   const handleLogout = async () => {

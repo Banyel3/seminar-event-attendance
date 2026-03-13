@@ -7,6 +7,15 @@ import {
   generateCheckinToken as createToken,
   generateEvalToken as createEvalToken,
 } from "@/lib/checkin";
+import {
+  generateAuthUrl,
+  exchangeCodeForTokens,
+  createMeetEvent,
+  syncAllAttendeesToEvent,
+  getMeetEventDetails,
+  getMeetEventId,
+  saveMeetEventId,
+} from "@/lib/google-calendar";
 
 // ─── Auth ───────────────────────────────────────────────────────────
 
@@ -44,12 +53,14 @@ export async function adminLogout() {
 // ─── Overview ───────────────────────────────────────────────────────
 
 export async function getOverviewStats() {
-  const [totalRegistered, qrGenerated, attended, evaluated] = await Promise.all([
-    prisma.participant.count(),
-    prisma.participant.count({ where: { qrGeneratedAt: { not: null } } }),
-    prisma.participant.count({ where: { attendedAt: { not: null } } }),
-    prisma.participant.count({ where: { evaluated: true } }),
-  ]);
+  const [totalRegistered, qrGenerated, attended, evaluated] = await Promise.all(
+    [
+      prisma.participant.count(),
+      prisma.participant.count({ where: { qrGeneratedAt: { not: null } } }),
+      prisma.participant.count({ where: { attendedAt: { not: null } } }),
+      prisma.participant.count({ where: { evaluated: true } }),
+    ],
+  );
 
   const attendanceRate =
     totalRegistered > 0
@@ -444,4 +455,86 @@ export async function getRegisteredParticipants() {
       attended: !!p.attendedAt,
     }),
   );
+}
+
+// ─── Google Meet Integration ─────────────────────────────────────
+
+/** Returns the Google OAuth consent URL for the admin to authorize. */
+export async function generateGoogleAuthUrl() {
+  return { url: generateAuthUrl() };
+}
+
+/** Exchanges an OAuth code for tokens. Returns the refresh token to copy to .env. */
+export async function exchangeGoogleCode(code: string) {
+  try {
+    const result = await exchangeCodeForTokens(code);
+    return { success: true, refreshToken: result.refreshToken };
+  } catch (err) {
+    console.error("exchangeGoogleCode error:", err);
+    return { error: "Failed to exchange authorization code." };
+  }
+}
+
+/** Creates a Google Calendar event with a Meet link and saves the event ID to the DB. */
+export async function createGoogleMeetEvent(data: {
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  timeZone?: string;
+}) {
+  try {
+    const { eventId, meetLink, htmlLink } = await createMeetEvent(
+      data.title,
+      data.description,
+      data.startDateTime,
+      data.endDateTime,
+      data.timeZone ?? "Asia/Manila",
+    );
+    await saveMeetEventId(eventId);
+    return { success: true, eventId, meetLink, htmlLink };
+  } catch (err) {
+    console.error("createGoogleMeetEvent error:", err);
+    return { error: String(err) };
+  }
+}
+
+/** Syncs all registered participants as attendees on the Meet event. */
+export async function syncAllToMeet() {
+  try {
+    const eventId = await getMeetEventId();
+    if (!eventId) return { error: "No Meet event has been created yet." };
+
+    const allParticipants = await prisma.participant.findMany({
+      select: { email: true, name: true },
+      orderBy: { registeredAt: "asc" },
+    });
+
+    const result = await syncAllAttendeesToEvent(eventId, allParticipants);
+    return { success: true, added: result.added, skipped: result.skipped };
+  } catch (err) {
+    console.error("syncAllToMeet error:", err);
+    return { error: String(err) };
+  }
+}
+
+/** Returns the current Meet event status, or null if no event has been created. */
+export async function getMeetStatus() {
+  try {
+    const eventId = await getMeetEventId();
+    if (!eventId) return { connected: !!process.env.GOOGLE_REFRESH_TOKEN?.trim(), event: null };
+
+    const details = await getMeetEventDetails(eventId);
+    return {
+      connected: true,
+      event: { eventId, ...details },
+    };
+  } catch (err) {
+    console.error("getMeetStatus error:", err);
+    return {
+      connected: !!process.env.GOOGLE_REFRESH_TOKEN?.trim(),
+      event: null,
+      error: String(err),
+    };
+  }
 }
