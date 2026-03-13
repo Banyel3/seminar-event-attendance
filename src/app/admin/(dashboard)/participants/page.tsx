@@ -123,6 +123,18 @@ export default function ParticipantsPage() {
     time?: string;
   }) => {
     switch (status) {
+      case "Evaluated":
+        return (
+          <div className="flex flex-col gap-1 items-start">
+            <Badge
+              variant="secondary"
+              className="bg-purple-100 text-purple-800 hover:bg-purple-200"
+            >
+              {status}
+            </Badge>
+            {time && <span className="text-[10px] text-slate-500">{time}</span>}
+          </div>
+        );
       case "Attended":
         return (
           <div className="flex flex-col gap-1 items-start">
@@ -289,6 +301,7 @@ export default function ParticipantsPage() {
               <option value="Registered">Registered Only</option>
               <option value="QR Generated">QR Generated</option>
               <option value="Attended">Attended</option>
+              <option value="Evaluated">Evaluated</option>
             </select>
           </div>
         </div>

@@ -21,6 +21,7 @@ model Participant {
   qrToken       String?   @unique
   attendedAt    DateTime?
   attendedBy    String?
+  evaluated     Boolean   @default(false)
   notes         String?
 
   @@map("participants")

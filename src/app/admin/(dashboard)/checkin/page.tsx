@@ -221,9 +221,7 @@ export default function AdminCheckinPage() {
         <CardContent>
           <ol className="space-y-2 text-sm text-slate-600 list-decimal list-inside">
             <li>Display this QR code on a projector or screen at the venue.</li>
-            <li>
-              Participants open their phone camera and scan the QR code.
-            </li>
+            <li>Participants open their phone camera and scan the QR code.</li>
             <li>
               They enter the email address they registered with and tap{" "}
               <strong>Check In</strong>.
@@ -232,8 +230,8 @@ export default function AdminCheckinPage() {
               Their attendance is recorded instantly — no admin action needed.
             </li>
             <li>
-              The QR expires after 12 hours. Click{" "}
-              <strong>Regenerate</strong> to get a fresh one at any time.
+              The QR expires after 12 hours. Click <strong>Regenerate</strong>{" "}
+              to get a fresh one at any time.
             </li>
           </ol>
         </CardContent>

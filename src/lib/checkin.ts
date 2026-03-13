@@ -12,9 +12,10 @@ export function generateCheckinToken(): string {
   return `${timestamp}.${hmac}`;
 }
 
-export function validateCheckinToken(
-  token: string,
-): { valid: boolean; error?: string } {
+export function validateCheckinToken(token: string): {
+  valid: boolean;
+  error?: string;
+} {
   if (!token) return { valid: false, error: "No token provided." };
 
   const dotIdx = token.indexOf(".");
@@ -53,5 +54,35 @@ export function validateCheckinToken(
     };
   }
 
+  return { valid: true };
+}
+
+export function generateEvalToken(): string {
+  const secret = process.env.ADMIN_PASSWORD ?? "seminar-checkin-secret";
+  const payload = "evaluation";
+  const hmac = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  return `eval.${hmac}`;
+}
+
+export function validateEvalToken(token: string): {
+  valid: boolean;
+  error?: string;
+} {
+  if (!token) return { valid: false, error: "No token provided." };
+
+  const expected = generateEvalToken();
+  let valid = expected.length === token.length;
+  if (valid) {
+    try {
+      valid = crypto.timingSafeEqual(
+        Buffer.from(expected, "utf8"),
+        Buffer.from(token, "utf8"),
+      );
+    } catch {
+      valid = false;
+    }
+  }
+
+  if (!valid) return { valid: false, error: "Invalid evaluation token." };
   return { valid: true };
 }

@@ -3,7 +3,10 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { addParticipantSchema, importRowSchema } from "@/lib/validations";
-import { generateCheckinToken as createToken } from "@/lib/checkin";
+import {
+  generateCheckinToken as createToken,
+  generateEvalToken as createEvalToken,
+} from "@/lib/checkin";
 
 // ─── Auth ───────────────────────────────────────────────────────────
 
@@ -41,10 +44,11 @@ export async function adminLogout() {
 // ─── Overview ───────────────────────────────────────────────────────
 
 export async function getOverviewStats() {
-  const [totalRegistered, qrGenerated, attended] = await Promise.all([
+  const [totalRegistered, qrGenerated, attended, evaluated] = await Promise.all([
     prisma.participant.count(),
     prisma.participant.count({ where: { qrGeneratedAt: { not: null } } }),
     prisma.participant.count({ where: { attendedAt: { not: null } } }),
+    prisma.participant.count({ where: { evaluated: true } }),
   ]);
 
   const attendanceRate =
@@ -52,7 +56,7 @@ export async function getOverviewStats() {
       ? parseFloat(((attended / totalRegistered) * 100).toFixed(1))
       : 0;
 
-  return { totalRegistered, qrGenerated, attended, attendanceRate };
+  return { totalRegistered, qrGenerated, attended, evaluated, attendanceRate };
 }
 
 export async function getRecentScans(limit: number = 5) {
@@ -98,15 +102,17 @@ export type ParticipantRow = {
   email: string;
   section: string | null;
   course: string | null;
-  status: "Registered" | "QR Generated" | "Attended";
+  status: "Registered" | "QR Generated" | "Attended" | "Evaluated";
   timestamp?: string;
   registeredAt: string;
 };
 
 function deriveStatus(p: {
+  evaluated: boolean;
   qrGeneratedAt: Date | null;
   attendedAt: Date | null;
-}): "Registered" | "QR Generated" | "Attended" {
+}): "Registered" | "QR Generated" | "Attended" | "Evaluated" {
+  if (p.evaluated) return "Evaluated";
   if (p.attendedAt) return "Attended";
   if (p.qrGeneratedAt) return "QR Generated";
   return "Registered";
@@ -130,6 +136,9 @@ export async function getParticipants(
     where.attendedAt = null;
   } else if (filter === "Attended") {
     where.attendedAt = { not: null };
+    where.evaluated = false;
+  } else if (filter === "Evaluated") {
+    where.evaluated = true;
   } else if (filter === "Registered") {
     where.qrGeneratedAt = null;
     where.attendedAt = null;
@@ -148,6 +157,7 @@ export async function getParticipants(
       email: string;
       section: string | null;
       course: string | null;
+      evaluated: boolean;
       qrGeneratedAt: Date | null;
       attendedAt: Date | null;
       registeredAt: Date;
@@ -396,6 +406,10 @@ export async function exportParticipantsCSV(
 
 export async function generateCheckinToken() {
   return { token: createToken() };
+}
+
+export async function generateEvalToken() {
+  return { token: createEvalToken() };
 }
 
 // ─────────────────────────────────────────────────────────────────────

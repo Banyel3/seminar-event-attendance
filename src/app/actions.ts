@@ -3,7 +3,7 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { attendFormSchema } from "@/lib/validations";
-import { validateCheckinToken } from "@/lib/checkin";
+import { validateCheckinToken, validateEvalToken } from "@/lib/checkin";
 
 // ─── Registration (Sign Up page) ────────────────────────────────────
 export async function registerParticipant(formData: FormData) {
@@ -234,6 +234,62 @@ export async function selfCheckIn(email: string, token: string) {
     };
   } catch (err) {
     console.error("selfCheckIn error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
+// ─── Evaluation Marking (participant scans evaluation QR) ────────────
+export async function selfEvaluate(email: string, token: string) {
+  const validation = validateEvalToken(token);
+  if (!validation.valid) return { error: validation.error };
+
+  const normalised = email.toLowerCase().trim();
+  if (!normalised.includes("@"))
+    return { error: "Please enter a valid email address." };
+
+  try {
+    const participant = await prisma.participant.findFirst({
+      where: { email: { equals: normalised, mode: "insensitive" } },
+    });
+
+    if (!participant) {
+      return {
+        error: "Email not found. Please sign up first on the Sign Up page.",
+        notRegistered: true,
+      };
+    }
+
+    if (!participant.attendedAt) {
+      return {
+        error:
+          "You must be marked as present before submitting the evaluation.",
+        notPresent: true,
+      };
+    }
+
+    if (participant.evaluated) {
+      return {
+        error: "Your evaluation has already been recorded.",
+        alreadyEvaluated: true,
+      };
+    }
+
+    await prisma.participant.update({
+      where: { id: participant.id },
+      data: { evaluated: true },
+    });
+
+    return {
+      success: true,
+      data: {
+        name: participant.name,
+        email: participant.email,
+        section: participant.section,
+        course: participant.course,
+      },
+    };
+  } catch (err) {
+    console.error("selfEvaluate error:", err);
     return { error: "An unexpected error occurred. Please try again." };
   }
 }
