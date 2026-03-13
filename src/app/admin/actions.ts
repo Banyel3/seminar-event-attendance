@@ -11,6 +11,7 @@ import {
   generateAuthUrl,
   exchangeCodeForTokens,
   createMeetEvent,
+  updateMeetEvent,
   syncAllAttendeesToEvent,
   getMeetEventDetails,
   getMeetEventId,
@@ -495,6 +496,25 @@ export async function createGoogleMeetEvent(data: {
     return { success: true, eventId, meetLink, htmlLink };
   } catch (err) {
     console.error("createGoogleMeetEvent error:", err);
+    return { error: String(err) };
+  }
+}
+
+/** Updates the title, description, and/or datetime of the existing Meet event. */
+export async function updateGoogleMeetEvent(data: {
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  timeZone?: string;
+}) {
+  try {
+    const eventId = await getMeetEventId();
+    if (!eventId) return { error: "No Meet event has been created yet." };
+    await updateMeetEvent(eventId, data);
+    return { success: true };
+  } catch (err) {
+    console.error("updateGoogleMeetEvent error:", err);
     return { error: String(err) };
   }
 }

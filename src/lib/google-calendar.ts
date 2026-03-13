@@ -191,6 +191,41 @@ export async function syncAllAttendeesToEvent(
 }
 
 /**
+ * Updates the title, description, and/or time of an existing calendar event.
+ * Does NOT touch attendees or the conference data (Meet link stays the same).
+ */
+export async function updateMeetEvent(
+  eventId: string,
+  data: {
+    title?: string;
+    description?: string;
+    startDateTime?: string;
+    endDateTime?: string;
+    timeZone?: string;
+  },
+): Promise<{ success: boolean }> {
+  const auth = getAuthenticatedClient();
+  const calendar = google.calendar({ version: "v3", auth });
+
+  const requestBody: Record<string, unknown> = {};
+  if (data.title !== undefined) requestBody.summary = data.title;
+  if (data.description !== undefined) requestBody.description = data.description;
+  if (data.startDateTime !== undefined)
+    requestBody.start = { dateTime: data.startDateTime, timeZone: data.timeZone ?? "Asia/Manila" };
+  if (data.endDateTime !== undefined)
+    requestBody.end = { dateTime: data.endDateTime, timeZone: data.timeZone ?? "Asia/Manila" };
+
+  await calendar.events.patch({
+    calendarId: "primary",
+    eventId,
+    sendUpdates: "all", // notify existing guests of the change
+    requestBody,
+  });
+
+  return { success: true };
+}
+
+/**
  * Fetches current event details including the Meet link and attendee count.
  */
 export async function getMeetEventDetails(eventId: string) {

@@ -13,6 +13,8 @@ import {
   Loader2,
   Link2,
   PlusCircle,
+  Pencil,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
   createGoogleMeetEvent,
+  updateGoogleMeetEvent,
   syncAllToMeet,
   getMeetStatus,
 } from "@/app/admin/actions";
@@ -57,13 +60,46 @@ function formatDateTime(iso: string) {
   }
 }
 
+/** Converts an ISO datetime string to "YYYY-MM-DD" for a date input. */
+function isoToDateInput(iso: string): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("en-CA"); // "YYYY-MM-DD"
+  } catch {
+    return "";
+  }
+}
+
+/** Converts an ISO datetime string to "HH:MM" for a time input. */
+function isoToTimeInput(iso: string): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
+
 export default function GoogleMeetAdminPage() {
   const [status, setStatus] = useState<Status | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
+    title: "",
+    description: "",
+    date: "",
+    startTime: "",
+    endTime: "",
+  });
+
+  const [editForm, setEditForm] = useState({
     title: "",
     description: "",
     date: "",
@@ -115,6 +151,51 @@ export default function GoogleMeetAdminPage() {
       }
     } finally {
       setCreating(false);
+    }
+  };
+
+  const openEdit = () => {
+    if (!status?.event) return;
+    setEditForm({
+      title: status.event.title,
+      description: status.event.description,
+      date: isoToDateInput(status.event.start),
+      startTime: isoToTimeInput(status.event.start),
+      endTime: isoToTimeInput(status.event.end),
+    });
+    setEditing(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editForm.title || !editForm.date || !editForm.startTime || !editForm.endTime) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    const startDateTime = `${editForm.date}T${editForm.startTime}:00+08:00`;
+    const endDateTime = `${editForm.date}T${editForm.endTime}:00+08:00`;
+    if (new Date(endDateTime) <= new Date(startDateTime)) {
+      toast.error("End time must be after start time.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const result = await updateGoogleMeetEvent({
+        title: editForm.title,
+        description: editForm.description,
+        startDateTime,
+        endDateTime,
+        timeZone: "Asia/Manila",
+      });
+      if ("error" in result && result.error) {
+        toast.error(`Failed to update event: ${result.error}`);
+      } else {
+        toast.success("Event updated! Guests were notified.");
+        setEditing(false);
+        await fetchStatus();
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -295,75 +376,141 @@ export default function GoogleMeetAdminPage() {
           {/* Event Details Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-blue-600" />
-                Event Details
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-blue-600" />
+                  Event Details
+                </CardTitle>
+                {!editing && (
+                  <Button variant="outline" size="sm" onClick={openEdit} className="gap-1.5">
+                    <Pencil className="w-3.5 h-3.5" />
+                    Edit
+                  </Button>
+                )}
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                  Title
-                </p>
-                <p className="text-slate-800 font-semibold">
-                  {status.event.title}
-                </p>
-              </div>
-              {status.event.description && (
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                    Description
-                  </p>
-                  <p className="text-slate-700 text-sm">
-                    {status.event.description}
-                  </p>
+            <CardContent>
+              {editing ? (
+                /* ── Edit form ── */
+                <form onSubmit={handleSaveEdit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-title">Event Title *</Label>
+                    <Input
+                      id="edit-title"
+                      value={editForm.title}
+                      onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-description">Description</Label>
+                    <Input
+                      id="edit-description"
+                      value={editForm.description}
+                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-date">Date *</Label>
+                    <Input
+                      id="edit-date"
+                      type="date"
+                      value={editForm.date}
+                      onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-start">Start Time *</Label>
+                      <Input
+                        id="edit-start"
+                        type="time"
+                        value={editForm.startTime}
+                        onChange={(e) => setEditForm({ ...editForm, startTime: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-end">End Time *</Label>
+                      <Input
+                        id="edit-end"
+                        type="time"
+                        value={editForm.endTime}
+                        onChange={(e) => setEditForm({ ...editForm, endTime: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400">All times are in Philippine Standard Time (UTC+8). Existing guests will be notified of any changes.</p>
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 flex-1">
+                      {saving ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</>
+                      ) : (
+                        <><Pencil className="w-4 h-4 mr-2" />Save Changes</>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setEditing(false)}
+                      disabled={saving}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                /* ── Read-only view ── */
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Title</p>
+                    <p className="text-slate-800 font-semibold">{status.event.title}</p>
+                  </div>
+                  {status.event.description && (
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Description</p>
+                      <p className="text-slate-700 text-sm">{status.event.description}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Start</p>
+                      <p className="text-slate-700 text-sm">{formatDateTime(status.event.start)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">End</p>
+                      <p className="text-slate-700 text-sm">{formatDateTime(status.event.end)}</p>
+                    </div>
+                  </div>
+                  {status.event.meetLink && (
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Meet Link</p>
+                      <a
+                        href={status.event.meetLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-blue-600 hover:underline text-sm font-medium"
+                      >
+                        <Link2 className="w-3.5 h-3.5" />
+                        {status.event.meetLink}
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                  {status.event.htmlLink && (
+                    <a
+                      href={status.event.htmlLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 text-xs mt-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Open in Google Calendar
+                    </a>
+                  )}
                 </div>
-              )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                    Start
-                  </p>
-                  <p className="text-slate-700 text-sm">
-                    {formatDateTime(status.event.start)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                    End
-                  </p>
-                  <p className="text-slate-700 text-sm">
-                    {formatDateTime(status.event.end)}
-                  </p>
-                </div>
-              </div>
-              {status.event.meetLink && (
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">
-                    Meet Link
-                  </p>
-                  <a
-                    href={status.event.meetLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-blue-600 hover:underline text-sm font-medium"
-                  >
-                    <Link2 className="w-3.5 h-3.5" />
-                    {status.event.meetLink}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              )}
-              {status.event.htmlLink && (
-                <a
-                  href={status.event.htmlLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 text-xs mt-1"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Open in Google Calendar
-                </a>
               )}
             </CardContent>
           </Card>
