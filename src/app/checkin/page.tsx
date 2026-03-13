@@ -149,7 +149,7 @@ export default function CheckinPage() {
               </div>
             </div>
             <p className="text-sm text-white/70 text-center">
-              Your attendance has been recorded. Welcome to the seminar!
+              Your attendance has been recorded. Thank you for attending the seminar!
             </p>
           </CardContent>
         </Card>
