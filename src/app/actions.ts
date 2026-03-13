@@ -9,8 +9,9 @@ export async function registerParticipant(formData: FormData) {
   const raw = {
     name: formData.get("name") as string,
     email: formData.get("email") as string,
-    section: formData.get("section") as string,
-    course: formData.get("course") as string,
+    section: (formData.get("section") as string) || "",
+    course: (formData.get("course") as string) || "",
+    isGuest: formData.get("isGuest"),  // "on" when checked, null when not
   };
 
   const parsed = attendFormSchema.safeParse(raw);
@@ -18,7 +19,7 @@ export async function registerParticipant(formData: FormData) {
     return { error: parsed.error.issues.map((e) => e.message).join(", ") };
   }
 
-  const { name, email, section, course } = parsed.data;
+  const { name, email, section, course, isGuest } = parsed.data;
 
   try {
     // Look up by the normalised (lowercase) email coming from the schema,
@@ -34,12 +35,22 @@ export async function registerParticipant(formData: FormData) {
     }
 
     if (existing) {
-      // All four fields match → return existing QR ticket (re-submission)
       const nameMatch = existing.name.trim().toLowerCase() === name.trim().toLowerCase();
-      const sectionMatch = existing.section.trim().toLowerCase() === section.trim().toLowerCase();
-      const courseMatch = existing.course.trim().toLowerCase() === course.trim().toLowerCase();
 
-      if (nameMatch && sectionMatch && courseMatch) {
+      // Determine if this is a valid re-submission
+      let isResubmit = false;
+      if (isGuest && existing.isGuest) {
+        // Both guest — only name needs to match
+        isResubmit = nameMatch;
+      } else if (!isGuest && !existing.isGuest) {
+        // Both non-guest — name, section, and course must all match
+        const sectionMatch = (existing.section ?? "").trim().toLowerCase() === (section ?? "").trim().toLowerCase();
+        const courseMatch = (existing.course ?? "").trim().toLowerCase() === (course ?? "").trim().toLowerCase();
+        isResubmit = nameMatch && sectionMatch && courseMatch;
+      }
+      // Mixed guest/non-guest → always reject (falls through to error below)
+
+      if (isResubmit) {
         const qrToken = existing.qrToken ?? crypto.randomUUID().slice(0, 12);
         if (!existing.qrToken) {
           await prisma.participant.update({
@@ -60,7 +71,7 @@ export async function registerParticipant(formData: FormData) {
         };
       }
 
-      // Email matches but one or more fields differ → reject with clear message
+      // Email matches but details differ → reject with clear message
       return {
         error:
           "This email is already registered. Some of your details don't match the original registration — please check your name, section, and college, then try again.",
@@ -74,8 +85,9 @@ export async function registerParticipant(formData: FormData) {
       data: {
         name,
         email,
-        section,
-        course,
+        section: isGuest ? null : (section || null),
+        course: isGuest ? null : (course || null),
+        isGuest,
         qrGeneratedAt: new Date(),
         qrToken,
       },

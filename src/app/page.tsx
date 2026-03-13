@@ -15,8 +15,8 @@ import { registerParticipant } from "./actions";
 type RegistrationData = {
   name: string;
   email: string;
-  section: string;
-  course: string;
+  section: string | null;
+  course: string | null;
 };
 
 export default function SignUpPage() {
@@ -24,6 +24,7 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [registered, setRegistered] = useState<RegistrationData | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,8 +42,8 @@ export default function SignUpPage() {
         setRegistered({
           name: result.data.name,
           email: result.data.email,
-          section: result.data.section,
-          course: result.data.course,
+          section: result.data.section ?? null,
+          course: result.data.course ?? null,
         });
       }
     } catch {
@@ -71,8 +72,14 @@ export default function SignUpPage() {
               <p className="font-bold text-xl text-white">{registered.name}</p>
               <p className="text-sm text-white/70 mt-1">{registered.email}</p>
               <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
-                <Badge variant="secondary" className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">{registered.section}</Badge>
-                <Badge variant="secondary" className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">{registered.course}</Badge>
+                {registered.section && registered.course ? (
+                  <>
+                    <Badge variant="secondary" className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">{registered.section}</Badge>
+                    <Badge variant="secondary" className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">{registered.course}</Badge>
+                  </>
+                ) : (
+                  <Badge variant="secondary" className="bg-orange-500/30 text-orange-200 border border-orange-400/30">Guest</Badge>
+                )}
               </div>
             </div>
             <p className="text-sm text-white/70 text-center">
@@ -130,16 +137,33 @@ export default function SignUpPage() {
               <Input id="email" name="email" type="email" placeholder="juan@wmsu.edu.ph" required
                 className="bg-white/35 border-white/40 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-400" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* Guest checkbox */}
+            <label className="flex items-center gap-3 cursor-pointer select-none group">
+              <input
+                type="checkbox"
+                name="isGuest"
+                checked={isGuest}
+                onChange={(e) => setIsGuest(e.target.checked)}
+                className="w-4 h-4 rounded border-white/40 bg-white/35 accent-emerald-400 cursor-pointer"
+              />
+              <span className="text-sm text-white/80 group-hover:text-white transition-colors">
+                Guest / External attendee
+              </span>
+            </label>
+
+            <div className={`grid grid-cols-2 gap-4 transition-opacity duration-200 ${isGuest ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
               <div className="space-y-2">
                 <Label htmlFor="section" className="text-white font-semibold">Section</Label>
-                <Input id="section" name="section" placeholder="e.g. BSCS 3A" defaultValue="" required
-                  className="bg-white/35 border-white/40 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-400" />
+                <Input id="section" name="section" placeholder="e.g. BSCS 3A" defaultValue=""
+                  disabled={isGuest} required={!isGuest}
+                  className="bg-white/35 border-white/40 text-slate-900 placeholder:text-slate-500 focus-visible:ring-emerald-400 disabled:cursor-not-allowed" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="course" className="text-white font-semibold">College / Course</Label>
-                <select id="course" name="course" required defaultValue=""
-                  className="w-full h-9 rounded-md border border-white/40 bg-white/35 px-3 py-1 text-sm text-slate-900 shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                <select id="course" name="course" defaultValue=""
+                  disabled={isGuest} required={!isGuest}
+                  className="w-full h-9 rounded-md border border-white/40 bg-white/35 px-3 py-1 text-sm text-slate-900 shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:cursor-not-allowed">
                   <option value="" disabled className="text-slate-800">Select your college</option>
                   <option className="text-slate-800">College of Law</option>
                   <option className="text-slate-800">College of Agriculture</option>
@@ -162,9 +186,11 @@ export default function SignUpPage() {
                 </select>
               </div>
             </div>
-            <p className="text-xs text-white/40 -mt-1">
-              Follow the format shown in the placeholders, e.g. section as <span className="font-medium text-white/60">BSCS 3A</span>.
-            </p>
+            {!isGuest && (
+              <p className="text-xs text-white/40 -mt-1">
+                Follow the format shown in the placeholders, e.g. section as <span className="font-medium text-white/60">BSCS 3A</span>.
+              </p>
+            )}
             <Button type="submit"
               className="w-full mt-6 bg-emerald-500 hover:bg-emerald-400 text-white transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-emerald-900/40"
               disabled={loading}>

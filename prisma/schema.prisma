@@ -13,8 +13,9 @@ model Participant {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
-  section       String
-  course        String
+  section       String?
+  course        String?
+  isGuest       Boolean   @default(false)
   registeredAt  DateTime  @default(now())
   qrGeneratedAt DateTime?
   qrToken       String?   @unique

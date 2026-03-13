@@ -267,10 +267,14 @@ export default function ParticipantsPage() {
                                             {participant.email}
                                         </TableCell>
                                         <TableCell className="text-slate-600 border-b border-slate-100">
-                                            {participant.section}
+                                            {participant.section ?? (
+                                                <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200">Guest</Badge>
+                                            )}
                                         </TableCell>
                                         <TableCell className="hidden sm:table-cell text-slate-600 border-b border-slate-100">
-                                            {participant.course}
+                                            {participant.course ?? (
+                                                <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200">Guest</Badge>
+                                            )}
                                         </TableCell>
                                         <TableCell className="border-b border-slate-100">
                                             <StatusBadge status={participant.status} time={participant.timestamp} />

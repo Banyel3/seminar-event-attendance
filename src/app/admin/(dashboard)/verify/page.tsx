@@ -21,8 +21,8 @@ type Participant = {
     id: string;
     name: string;
     email: string;
-    section: string;
-    course: string;
+    section: string | null;
+    course: string | null;
     status?: string;
     attended?: boolean;
 };
@@ -287,7 +287,7 @@ export default function VerifyPage() {
 
     const filtered = participants.filter((p) =>
         p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.section.toLowerCase().includes(search.toLowerCase())
+        (p.section ?? "").toLowerCase().includes(search.toLowerCase())
     );
     const notYet = filtered.filter((p) => !p.attended);
     const done = filtered.filter((p) => p.attended);

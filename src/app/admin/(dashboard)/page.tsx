@@ -18,7 +18,7 @@ type RecentScan = {
     id: string;
     name: string;
     email: string;
-    section: string;
+    section: string | null;
     time: string;
     status: "Present";
 };

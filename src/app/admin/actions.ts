@@ -68,7 +68,7 @@ export async function getRecentScans(limit: number = 5) {
         },
     });
 
-    return scans.map((s: { id: string; name: string; email: string; section: string; attendedAt: Date | null }) => ({
+    return scans.map((s: { id: string; name: string; email: string; section: string | null; attendedAt: Date | null }) => ({
         id: s.id,
         name: s.name,
         email: s.email,
@@ -87,8 +87,8 @@ export type ParticipantRow = {
     id: string;
     name: string;
     email: string;
-    section: string;
-    course: string;
+    section: string | null;
+    course: string | null;
     status: "Registered" | "QR Generated" | "Attended";
     timestamp?: string;
     registeredAt: string;
@@ -132,7 +132,7 @@ export async function getParticipants(
         take: 100,
     });
 
-    return participants.map((p: { id: string; name: string; email: string; section: string; course: string; qrGeneratedAt: Date | null; attendedAt: Date | null; registeredAt: Date }) => ({
+    return participants.map((p: { id: string; name: string; email: string; section: string | null; course: string | null; qrGeneratedAt: Date | null; attendedAt: Date | null; registeredAt: Date }) => ({
         id: p.id,
         name: p.name,
         email: p.email,
@@ -344,7 +344,7 @@ export async function exportParticipantsCSV(
     const header = "Name,Email,Section,Course,Registered,QR Generated,Attended\n";
     const rows = participants
         .map(
-            (p: { name: string; email: string; section: string; course: string; registeredAt: Date; qrGeneratedAt: Date | null; attendedAt: Date | null }) =>
+            (p: { name: string; email: string; section: string | null; course: string | null; registeredAt: Date; qrGeneratedAt: Date | null; attendedAt: Date | null }) =>
                 `"${p.name}","${p.email}","${p.section}","${p.course}","${p.registeredAt.toISOString()}","${p.qrGeneratedAt?.toISOString() || ""}","${p.attendedAt?.toISOString() || ""}"`
         )
         .join("\n");
@@ -367,7 +367,7 @@ export async function getRegisteredParticipants() {
             attendedAt: true,
         },
     });
-    return participants.map((p: { id: string; name: string; email: string; section: string; course: string; attendedAt: Date | null }) => ({
+    return participants.map((p: { id: string; name: string; email: string; section: string | null; course: string | null; attendedAt: Date | null }) => ({
         id: p.id,
         name: p.name,
         email: p.email,

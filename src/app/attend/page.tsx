@@ -20,8 +20,8 @@ const EVENT_OPEN = new Date("2026-03-14T07:00:00+08:00");
 type RegistrationData = {
     name: string;
     email: string;
-    section: string;
-    course: string;
+    section: string | null;
+    course: string | null;
 };
 
 type TimeLeft = { days: number; hours: number; minutes: number; seconds: number };
@@ -88,8 +88,8 @@ export default function AttendPage() {
                 setRegData({
                     name: result.data.name,
                     email: result.data.email,
-                    section: result.data.section,
-                    course: result.data.course,
+                    section: result.data.section ?? null,
+                    course: result.data.course ?? null,
                 });
             }
         } catch {
@@ -153,8 +153,14 @@ export default function AttendPage() {
                             <p className="font-bold text-xl text-slate-900">{regData.name}</p>
                             <p className="text-sm text-slate-500 mt-1">{regData.email}</p>
                             <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
-                                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{regData.section}</Badge>
-                                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{regData.course}</Badge>
+                                {regData.section && regData.course ? (
+                                    <>
+                                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{regData.section}</Badge>
+                                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">{regData.course}</Badge>
+                                    </>
+                                ) : (
+                                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">Guest</Badge>
+                                )}
                             </div>
                         </div>
                         <p className="text-sm text-slate-500 text-center">
