@@ -3,6 +3,7 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { attendFormSchema } from "@/lib/validations";
+import { validateCheckinToken } from "@/lib/checkin";
 
 // ─── Registration (Sign Up page) ────────────────────────────────────
 export async function registerParticipant(formData: FormData) {
@@ -11,7 +12,7 @@ export async function registerParticipant(formData: FormData) {
     email: formData.get("email") as string,
     section: (formData.get("section") as string) || "",
     course: (formData.get("course") as string) || "",
-    isGuest: formData.get("isGuest"),  // "on" when checked, null when not
+    isGuest: formData.get("isGuest"), // "on" when checked, null when not
   };
 
   const parsed = attendFormSchema.safeParse(raw);
@@ -35,7 +36,8 @@ export async function registerParticipant(formData: FormData) {
     }
 
     if (existing) {
-      const nameMatch = existing.name.trim().toLowerCase() === name.trim().toLowerCase();
+      const nameMatch =
+        existing.name.trim().toLowerCase() === name.trim().toLowerCase();
 
       // Determine if this is a valid re-submission
       let isResubmit = false;
@@ -44,8 +46,12 @@ export async function registerParticipant(formData: FormData) {
         isResubmit = nameMatch;
       } else if (!isGuest && !existing.isGuest) {
         // Both non-guest — name, section, and course must all match
-        const sectionMatch = (existing.section ?? "").trim().toLowerCase() === (section ?? "").trim().toLowerCase();
-        const courseMatch = (existing.course ?? "").trim().toLowerCase() === (course ?? "").trim().toLowerCase();
+        const sectionMatch =
+          (existing.section ?? "").trim().toLowerCase() ===
+          (section ?? "").trim().toLowerCase();
+        const courseMatch =
+          (existing.course ?? "").trim().toLowerCase() ===
+          (course ?? "").trim().toLowerCase();
         isResubmit = nameMatch && sectionMatch && courseMatch;
       }
       // Mixed guest/non-guest → always reject (falls through to error below)
@@ -85,8 +91,8 @@ export async function registerParticipant(formData: FormData) {
       data: {
         name,
         email,
-        section: isGuest ? null : (section || null),
-        course: isGuest ? null : (course || null),
+        section: isGuest ? null : section || null,
+        course: isGuest ? null : course || null,
         isGuest,
         qrGeneratedAt: new Date(),
         qrToken,
@@ -132,14 +138,16 @@ export async function getTicket(email: string) {
 
     if (!participant) {
       return {
-        error:
-          "Email not found. Please register first on the Sign Up page.",
+        error: "Email not found. Please register first on the Sign Up page.",
         notRegistered: true,
       };
     }
 
     if (!participant.qrToken) {
-      return { error: "No QR ticket found for this email. Please contact the organizer." };
+      return {
+        error:
+          "No QR ticket found for this email. Please contact the organizer.",
+      };
     }
 
     if (participant.attendedAt) {
@@ -174,4 +182,58 @@ export async function getTicket(email: string) {
 // ─── Keep old action for admin pre-import flow (backwards compat) ────
 export async function generateTicket(formData: FormData) {
   return registerParticipant(formData);
+}
+
+// ─── Self Check-In (participant scans admin QR) ─────────────────────
+export async function selfCheckIn(email: string, token: string) {
+  const validation = validateCheckinToken(token);
+  if (!validation.valid) return { error: validation.error };
+
+  const normalised = email.toLowerCase().trim();
+  if (!normalised.includes("@"))
+    return { error: "Please enter a valid email address." };
+
+  try {
+    const participant = await prisma.participant.findFirst({
+      where: { email: { equals: normalised, mode: "insensitive" } },
+    });
+
+    if (!participant)
+      return {
+        error: "Email not found. Please sign up first on the Sign Up page.",
+        notRegistered: true,
+      };
+
+    if (participant.attendedAt) {
+      const date = participant.attendedAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      return {
+        error: `You were already checked in on ${date}.`,
+        alreadyAttended: true,
+        name: participant.name,
+      };
+    }
+
+    await prisma.participant.update({
+      where: { id: participant.id },
+      data: { attendedAt: new Date(), attendedBy: "self" },
+    });
+
+    return {
+      success: true,
+      data: {
+        name: participant.name,
+        email: participant.email,
+        section: participant.section,
+        course: participant.course,
+      },
+    };
+  } catch (err) {
+    console.error("selfCheckIn error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
 }

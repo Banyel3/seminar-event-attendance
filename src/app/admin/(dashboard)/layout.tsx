@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, LogOut, LayoutDashboard, Users, FileUp, ScanLine } from "lucide-react";
+import { ShieldCheck, LogOut, LayoutDashboard, Users, FileUp, ScanLine, QrCode } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { adminLogout } from "@/app/admin/actions";
@@ -20,6 +20,7 @@ export default function AdminDashboardLayout({
         { name: "Participants", href: "/admin/participants", icon: Users },
         { name: "Import CSV", href: "/admin/import", icon: FileUp },
         { name: "Verify QR", href: "/admin/verify", icon: ScanLine },
+        { name: "Self Check-In", href: "/admin/checkin", icon: QrCode },
     ];
 
     const handleLogout = async () => {
