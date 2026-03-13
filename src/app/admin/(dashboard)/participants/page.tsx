@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import {
   getParticipants,
   addParticipant,
+  updateParticipant,
   deleteParticipant,
   type ParticipantRow,
 } from "@/app/admin/actions";
@@ -44,6 +45,48 @@ export default function ParticipantsPage() {
   const [addEmail, setAddEmail] = useState("");
   const [addSection, setAddSection] = useState("");
   const [addCourse, setAddCourse] = useState("");
+
+  // Edit dialog state
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editTarget, setEditTarget] = useState<ParticipantRow | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editSection, setEditSection] = useState("");
+  const [editCourse, setEditCourse] = useState("");
+
+  const openEdit = (p: ParticipantRow) => {
+    setEditTarget(p);
+    setEditName(p.name);
+    setEditEmail(p.email);
+    setEditSection(p.section ?? "");
+    setEditCourse(p.course ?? "");
+    setIsEditOpen(true);
+  };
+
+  const handleEdit = async () => {
+    if (!editTarget) return;
+    setEditLoading(true);
+    try {
+      const result = await updateParticipant(editTarget.id, {
+        name: editName,
+        email: editEmail.toLowerCase().trim(),
+        section: editSection || undefined,
+        course: editCourse || undefined,
+      });
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Participant updated.");
+        setIsEditOpen(false);
+        loadParticipants();
+      }
+    } catch {
+      toast.error("Failed to update participant.");
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   const loadParticipants = async () => {
     setLoading(true);
@@ -383,6 +426,14 @@ export default function ParticipantsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                          onClick={() => openEdit(participant)}
+                        >
+                          <FileEdit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
                           onClick={() =>
                             handleDelete(participant.id, participant.name)
@@ -404,6 +455,88 @@ export default function ParticipantsPage() {
           <span>Showing {participants.length} participants</span>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Participant</DialogTitle>
+            <DialogDescription>
+              Update the participant&apos;s details. Email changes take effect immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Full Name</Label>
+              <Input
+                id="edit-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="text"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-section">Section</Label>
+                <Input
+                  id="edit-section"
+                  value={editSection}
+                  onChange={(e) => setEditSection(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-course">College / Course</Label>
+                <select
+                  id="edit-course"
+                  value={editCourse}
+                  onChange={(e) => setEditCourse(e.target.value)}
+                  className="h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">— None / Guest —</option>
+                  <option>College of Law</option>
+                  <option>College of Agriculture</option>
+                  <option>College of Liberal Arts</option>
+                  <option>College of Architecture</option>
+                  <option>College of Nursing</option>
+                  <option>College of Asian &amp; Islamic Studies</option>
+                  <option>College of Computing Studies</option>
+                  <option>College of Forestry &amp; Environmental Studies</option>
+                  <option>College of Criminal Justice Education</option>
+                  <option>College of Home Economics</option>
+                  <option>College of Engineering</option>
+                  <option>College of Medicine</option>
+                  <option>College of Public Administration &amp; Development Studies</option>
+                  <option>College of Sports Science &amp; Physical Education</option>
+                  <option>College of Science and Mathematics</option>
+                  <option>College of Social Work &amp; Community Development</option>
+                  <option>College of Teacher Education</option>
+                  <option>Professional Science Master&apos;s Program</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={handleEdit}
+              disabled={editLoading}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {editLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
