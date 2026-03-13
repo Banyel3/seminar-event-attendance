@@ -19,7 +19,9 @@ export default async function GoogleAuthCallbackPage({ searchParams }: Props) {
           </div>
           <p className="text-sm text-slate-600">
             Google returned an error:{" "}
-            <span className="font-mono text-red-600 text-xs">{params.error}</span>
+            <span className="font-mono text-red-600 text-xs">
+              {params.error}
+            </span>
           </p>
           <Link
             href="/admin/google-auth"
@@ -41,8 +43,8 @@ export default async function GoogleAuthCallbackPage({ searchParams }: Props) {
             <h1 className="font-bold">No authorization code</h1>
           </div>
           <p className="text-sm text-slate-600">
-            This page should only be accessed after the Google OAuth flow. No code was found
-            in the URL.
+            This page should only be accessed after the Google OAuth flow. No
+            code was found in the URL.
           </p>
           <Link
             href="/admin/google-auth"
@@ -96,10 +98,15 @@ export default async function GoogleAuthCallbackPage({ searchParams }: Props) {
           <div className="flex items-start gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
             <div>
-              <p className="font-semibold text-emerald-800">Authorization successful!</p>
+              <p className="font-semibold text-emerald-800">
+                Authorization successful!
+              </p>
               <p className="text-sm text-emerald-700 mt-1">
                 Copy the refresh token below and add it to your{" "}
-                <code className="bg-emerald-100 px-1 rounded text-xs">.env</code> file.
+                <code className="bg-emerald-100 px-1 rounded text-xs">
+                  .env
+                </code>{" "}
+                file.
               </p>
             </div>
           </div>
@@ -114,7 +121,8 @@ export default async function GoogleAuthCallbackPage({ searchParams }: Props) {
             {refreshToken}
           </div>
           <p className="text-xs text-slate-500">
-            Add this to your <code className="bg-slate-100 px-1 rounded">.env</code>:
+            Add this to your{" "}
+            <code className="bg-slate-100 px-1 rounded">.env</code>:
           </p>
           <div className="bg-slate-900 rounded-lg p-3 font-mono text-xs text-slate-300 break-all select-all">
             GOOGLE_REFRESH_TOKEN=&quot;{refreshToken}&quot;
@@ -124,10 +132,16 @@ export default async function GoogleAuthCallbackPage({ searchParams }: Props) {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700 space-y-1">
           <p className="font-semibold">Important — keep this safe</p>
           <ul className="list-disc list-inside text-xs space-y-1 mt-1">
-            <li>This token grants access to create and edit calendar events on your account.</li>
+            <li>
+              This token grants access to create and edit calendar events on
+              your account.
+            </li>
             <li>Never commit it to version control.</li>
             <li>This page only shows it once — save it now.</li>
-            <li>After adding it to .env, redeploy, then return to verify connection status.</li>
+            <li>
+              After adding it to .env, redeploy, then return to verify
+              connection status.
+            </li>
           </ul>
         </div>
 

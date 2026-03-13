@@ -158,7 +158,9 @@ export default function GoogleMeetAdminPage() {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
             <div>
-              <p className="font-semibold text-amber-800">Google account not connected</p>
+              <p className="font-semibold text-amber-800">
+                Google account not connected
+              </p>
               <p className="text-sm text-amber-700 mt-1">
                 You need to authorize with Google before creating a Meet event.
               </p>
@@ -264,7 +266,9 @@ export default function GoogleMeetAdminPage() {
                   />
                 </div>
               </div>
-              <p className="text-xs text-slate-400">All times are in Philippine Standard Time (UTC+8).</p>
+              <p className="text-xs text-slate-400">
+                All times are in Philippine Standard Time (UTC+8).
+              </p>
               <Button
                 type="submit"
                 disabled={creating}
@@ -298,28 +302,46 @@ export default function GoogleMeetAdminPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Title</p>
-                <p className="text-slate-800 font-semibold">{status.event.title}</p>
+                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
+                  Title
+                </p>
+                <p className="text-slate-800 font-semibold">
+                  {status.event.title}
+                </p>
               </div>
               {status.event.description && (
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Description</p>
-                  <p className="text-slate-700 text-sm">{status.event.description}</p>
+                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
+                    Description
+                  </p>
+                  <p className="text-slate-700 text-sm">
+                    {status.event.description}
+                  </p>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Start</p>
-                  <p className="text-slate-700 text-sm">{formatDateTime(status.event.start)}</p>
+                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
+                    Start
+                  </p>
+                  <p className="text-slate-700 text-sm">
+                    {formatDateTime(status.event.start)}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">End</p>
-                  <p className="text-slate-700 text-sm">{formatDateTime(status.event.end)}</p>
+                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
+                    End
+                  </p>
+                  <p className="text-slate-700 text-sm">
+                    {formatDateTime(status.event.end)}
+                  </p>
                 </div>
               </div>
               {status.event.meetLink && (
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Meet Link</p>
+                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">
+                    Meet Link
+                  </p>
                   <a
                     href={status.event.meetLink}
                     target="_blank"
@@ -356,19 +378,22 @@ export default function GoogleMeetAdminPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-slate-50 rounded-lg px-4 py-3 flex items-center justify-between">
-                <span className="text-sm text-slate-600">Attendees in this event</span>
+                <span className="text-sm text-slate-600">
+                  Attendees in this event
+                </span>
                 <span className="font-bold text-slate-800 text-lg">
                   {status.event.attendeeCount}
                 </span>
               </div>
               <p className="text-sm text-slate-500">
-                Clicking <strong>Sync All Participants</strong> will add every registered participant
-                (those not already invited) to this event&apos;s guest list. Each newly-added participant
-                will receive a Google Calendar invite email.
+                Clicking <strong>Sync All Participants</strong> will add every
+                registered participant (those not already invited) to this
+                event&apos;s guest list. Each newly-added participant will
+                receive a Google Calendar invite email.
               </p>
               <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                New participants who register <em>after</em> this sync are automatically added to
-                the guest list in real time.
+                New participants who register <em>after</em> this sync are
+                automatically added to the guest list in real time.
               </p>
               <div className="flex gap-3">
                 <Button

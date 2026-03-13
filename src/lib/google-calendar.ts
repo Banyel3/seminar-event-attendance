@@ -45,7 +45,9 @@ export async function exchangeCodeForTokens(
 function getAuthenticatedClient() {
   const client = getOAuth2Client();
   if (!process.env.GOOGLE_REFRESH_TOKEN) {
-    throw new Error("GOOGLE_REFRESH_TOKEN is not set in environment variables.");
+    throw new Error(
+      "GOOGLE_REFRESH_TOKEN is not set in environment variables.",
+    );
   }
   client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
   return client;
@@ -63,7 +65,11 @@ export async function createMeetEvent(
   startDateTime: string, // ISO 8601, e.g. "2026-03-20T09:00:00+08:00"
   endDateTime: string,
   timeZone: string = "Asia/Manila",
-): Promise<{ eventId: string; meetLink: string | null; htmlLink: string | null }> {
+): Promise<{
+  eventId: string;
+  meetLink: string | null;
+  htmlLink: string | null;
+}> {
   const auth = getAuthenticatedClient();
   const calendar = google.calendar({ version: "v3", auth });
 
@@ -86,9 +92,8 @@ export async function createMeetEvent(
   });
 
   const meetLink =
-    event.conferenceData?.entryPoints?.find(
-      (e) => e.entryPointType === "video",
-    )?.uri ?? null;
+    event.conferenceData?.entryPoints?.find((e) => e.entryPointType === "video")
+      ?.uri ?? null;
 
   return {
     eventId: event.id!,
@@ -120,7 +125,9 @@ export async function addAttendeeToEvent(
     const normalizedEmail = email.toLowerCase();
 
     // Idempotency — skip if already in the list
-    if (attendees.some((a) => (a.email ?? "").toLowerCase() === normalizedEmail)) {
+    if (
+      attendees.some((a) => (a.email ?? "").toLowerCase() === normalizedEmail)
+    ) {
       return { alreadyAdded: true };
     }
 
@@ -177,7 +184,10 @@ export async function syncAllAttendeesToEvent(
     requestBody: { attendees: [...currentAttendees, ...newAttendees] },
   });
 
-  return { added: newAttendees.length, skipped: participants.length - newAttendees.length };
+  return {
+    added: newAttendees.length,
+    skipped: participants.length - newAttendees.length,
+  };
 }
 
 /**
@@ -193,9 +203,8 @@ export async function getMeetEventDetails(eventId: string) {
   });
 
   const meetLink =
-    event.conferenceData?.entryPoints?.find(
-      (e) => e.entryPointType === "video",
-    )?.uri ?? null;
+    event.conferenceData?.entryPoints?.find((e) => e.entryPointType === "video")
+      ?.uri ?? null;
 
   return {
     title: event.summary ?? "",

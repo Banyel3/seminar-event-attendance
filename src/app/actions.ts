@@ -68,7 +68,8 @@ export async function registerParticipant(formData: FormData) {
         // Fire-and-forget — never blocks registration
         getMeetEventId()
           .then((eventId) => {
-            if (eventId) addAttendeeToEvent(eventId, existing.email, existing.name);
+            if (eventId)
+              addAttendeeToEvent(eventId, existing.email, existing.name);
           })
           .catch(() => {});
         return {
@@ -109,7 +110,8 @@ export async function registerParticipant(formData: FormData) {
     // Fire-and-forget — add to Meet event guest list without blocking registration
     getMeetEventId()
       .then((eventId) => {
-        if (eventId) addAttendeeToEvent(eventId, participant.email, participant.name);
+        if (eventId)
+          addAttendeeToEvent(eventId, participant.email, participant.name);
       })
       .catch(() => {});
 

@@ -522,7 +522,11 @@ export async function syncAllToMeet() {
 export async function getMeetStatus() {
   try {
     const eventId = await getMeetEventId();
-    if (!eventId) return { connected: !!process.env.GOOGLE_REFRESH_TOKEN?.trim(), event: null };
+    if (!eventId)
+      return {
+        connected: !!process.env.GOOGLE_REFRESH_TOKEN?.trim(),
+        event: null,
+      };
 
     const details = await getMeetEventDetails(eventId);
     return {
