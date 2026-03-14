@@ -22,7 +22,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { generateCheckinToken, getOverviewStats } from "@/app/admin/actions";
+import {
+  generateCheckinToken,
+  getOverviewStats,
+  getCheckInStatus,
+  setCheckInEnded as setCheckInEndedAction,
+} from "@/app/admin/actions";
 
 export default function AdminCheckinPage() {
   const [mounted, setMounted] = useState(false);
@@ -34,6 +39,7 @@ export default function AdminCheckinPage() {
     totalRegistered: number;
     attended: number;
   } | null>(null);
+  const [checkInEnded, setCheckInEnded] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -65,6 +71,7 @@ export default function AdminCheckinPage() {
     if (!mounted) return;
     generate();
     loadStats();
+    getCheckInStatus().then((s) => setCheckInEnded(s.ended));
     const id = setInterval(loadStats, 10_000);
     return () => clearInterval(id);
   }, [mounted, generate, loadStats]);
@@ -97,6 +104,36 @@ export default function AdminCheckinPage() {
           Display this QR code on-screen. Participants scan it with their phone
           and enter their email to be marked present instantly.
         </p>
+      </div>
+
+      {/* Check-In status banner */}
+      <div
+        className={`flex items-center justify-between p-3 rounded-lg border text-sm ${
+          checkInEnded
+            ? "bg-red-500/10 border-red-500/30 text-red-600"
+            : "bg-emerald-500/10 border-emerald-500/30 text-emerald-700"
+        }`}
+      >
+        <span>
+          {checkInEnded
+            ? "Check-In is CLOSED — participants cannot self check-in"
+            : "Check-In is OPEN — participants can self check-in via QR / link"}
+        </span>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={async () => {
+            await setCheckInEndedAction(!checkInEnded);
+            setCheckInEnded(!checkInEnded);
+          }}
+          className={
+            checkInEnded
+              ? "border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10"
+              : "border-red-400/40 text-red-600 hover:bg-red-500/10"
+          }
+        >
+          {checkInEnded ? "Re-open Check-In" : "Close Check-In"}
+        </Button>
       </div>
 
       {/* Live stats strip */}

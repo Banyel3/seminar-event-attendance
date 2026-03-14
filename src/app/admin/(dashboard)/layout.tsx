@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -16,7 +17,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { adminLogout } from "@/app/admin/actions";
+import { adminLogout, getCheckInStatus } from "@/app/admin/actions";
 
 export default function AdminDashboardLayout({
   children,
@@ -24,6 +25,11 @@ export default function AdminDashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+
+  const [checkInEnded, setCheckInEnded] = useState(false);
+  useEffect(() => {
+    getCheckInStatus().then((s) => setCheckInEnded(s.ended));
+  }, []);
 
   const tabs = [
     { name: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -73,6 +79,11 @@ export default function AdminDashboardLayout({
             >
               <tab.icon className="w-5 h-5" />
               {tab.name}
+              {checkInEnded && tab.name === "Self Check-In" && (
+                <span className="ml-auto text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full font-semibold leading-tight">
+                  Ended
+                </span>
+              )}
             </Link>
           ))}
         </nav>
@@ -127,7 +138,12 @@ export default function AdminDashboardLayout({
             href={tab.href}
             className="flex flex-col items-center gap-1 p-2 text-slate-500 hover:text-emerald-600 min-w-[64px]"
           >
-            <tab.icon className="w-5 h-5" />
+            <div className="relative">
+              <tab.icon className="w-5 h-5" />
+              {checkInEnded && tab.name === "Self Check-In" && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+              )}
+            </div>
             <span className="text-[10px] font-medium">{tab.name}</span>
           </Link>
         ))}

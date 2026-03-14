@@ -205,6 +205,17 @@ export async function selfCheckIn(email: string, token: string) {
   const validation = validateCheckinToken(token);
   if (!validation.valid) return { error: validation.error };
 
+  // Block if admin has ended check-in
+  const endedConfig = await prisma.config.findUnique({
+    where: { key: "event_checkin_ended" },
+  });
+  if (endedConfig?.value === "true") {
+    return {
+      error: "Self check-in for this event has ended. Thank you for participating!",
+      eventEnded: true,
+    };
+  }
+
   const normalised = email.toLowerCase().trim();
   if (!normalised.includes("@"))
     return { error: "Please enter a valid email address." };

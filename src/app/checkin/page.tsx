@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { selfCheckIn } from "@/app/actions";
+import { getCheckInStatus } from "@/app/admin/actions";
 
 type CheckedInData = {
   name: string;
@@ -38,6 +39,7 @@ export default function CheckinPage() {
   const [alreadyAttended, setAlreadyAttended] = useState(false);
   const [notRegistered, setNotRegistered] = useState(false);
   const [checkedIn, setCheckedIn] = useState<CheckedInData | null>(null);
+  const [eventEnded, setEventEnded] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -50,6 +52,7 @@ export default function CheckinPage() {
     } else {
       setToken(t);
     }
+    getCheckInStatus().then((s) => setEventEnded(s.ended));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,6 +67,8 @@ export default function CheckinPage() {
       const result = await selfCheckIn(email, token);
       if (result.error) {
         setError(result.error);
+        if ((result as { eventEnded?: boolean }).eventEnded)
+          setEventEnded(true);
         if ((result as { alreadyAttended?: boolean }).alreadyAttended)
           setAlreadyAttended(true);
         if ((result as { notRegistered?: boolean }).notRegistered)
@@ -80,6 +85,28 @@ export default function CheckinPage() {
 
   // SSR guard
   if (!mounted) return null;
+
+  // Event ended
+  if (eventEnded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md w-full bg-white/20 backdrop-blur-md border border-white/30 shadow-2xl">
+          <CardHeader className="text-center">
+            <div className="mx-auto bg-slate-500/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-2">
+              <AlertCircle className="w-8 h-8 text-slate-300" />
+            </div>
+            <CardTitle className="text-white text-xl">Check-In Closed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-white/70 text-sm text-center">
+              Self check-in for this event has ended. If you believe this is an
+              error, please contact the event organizer.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Token error
   if (tokenError) {

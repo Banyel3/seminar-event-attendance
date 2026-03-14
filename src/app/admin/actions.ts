@@ -424,6 +424,26 @@ export async function generateEvalToken() {
   return { token: createEvalToken() };
 }
 
+// ─── Check-In Status ─────────────────────────────────────────────
+
+const CHECKIN_ENDED_KEY = "event_checkin_ended";
+
+export async function getCheckInStatus() {
+  const config = await prisma.config.findUnique({
+    where: { key: CHECKIN_ENDED_KEY },
+  });
+  return { ended: config?.value === "true" };
+}
+
+export async function setCheckInEnded(ended: boolean) {
+  await prisma.config.upsert({
+    where: { key: CHECKIN_ENDED_KEY },
+    update: { value: ended ? "true" : "false" },
+    create: { key: CHECKIN_ENDED_KEY, value: ended ? "true" : "false" },
+  });
+  return { success: true };
+}
+
 // ─────────────────────────────────────────────────────────────────────
 
 export async function getRegisteredParticipants() {
