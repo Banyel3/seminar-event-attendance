@@ -35,6 +35,8 @@ import {
 export default function ParticipantsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("");
+  const [filterCourse, setFilterCourse] = useState("");
+  const [filterYear, setFilterYear] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [participants, setParticipants] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,6 +109,26 @@ export default function ParticipantsPage() {
   useEffect(() => {
     loadParticipants();
   }, [filterStatus]);
+
+  // Helper: extract year level digit from section string e.g. "BSCS 3A" → "3"
+  const getYear = (section?: string | null) =>
+    section ? (section.match(/\d+/)?.[0] ?? "") : "";
+
+  // Client-side derived filter lists
+  const uniqueCourses = Array.from(
+    new Set(participants.map((p) => p.course).filter(Boolean))
+  ).sort() as string[];
+
+  const uniqueYears = Array.from(
+    new Set(participants.map((p) => getYear(p.section)).filter(Boolean))
+  ).sort((a, b) => Number(a) - Number(b));
+
+  // Apply client-side course + year filters on top of server-filtered list
+  const displayed = participants.filter((p) => {
+    if (filterCourse && p.course !== filterCourse) return false;
+    if (filterYear && getYear(p.section) !== filterYear) return false;
+    return true;
+  });
 
   // Debounced search
   useEffect(() => {
@@ -334,7 +356,7 @@ export default function ParticipantsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
             <select
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               value={filterStatus}
@@ -345,6 +367,26 @@ export default function ParticipantsPage() {
               <option value="QR Generated">QR Generated</option>
               <option value="Attended">Attended</option>
               <option value="Evaluated">Evaluated</option>
+            </select>
+            <select
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              value={filterCourse}
+              onChange={(e) => setFilterCourse(e.target.value)}
+            >
+              <option value="">All Courses</option>
+              {uniqueCourses.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <select
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+            >
+              <option value="">All Year Levels</option>
+              {uniqueYears.map((y) => (
+                <option key={y} value={y}>Year {y}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -384,7 +426,7 @@ export default function ParticipantsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {participants.map((participant) => (
+                {displayed.map((participant) => (
                   <TableRow key={participant.id} className="hover:bg-slate-50">
                     <TableCell className="font-medium text-slate-900 border-b border-slate-100">
                       {participant.name}
@@ -452,7 +494,7 @@ export default function ParticipantsPage() {
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-100 text-xs text-slate-500 rounded-b-xl">
-          <span>Showing {participants.length} participants</span>
+          <span>Showing {displayed.length} of {participants.length} participants</span>
         </div>
       </div>
 
