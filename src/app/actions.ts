@@ -167,11 +167,13 @@ export async function getTicket(email: string) {
     }
 
     if (participant.attendedAt) {
-      const date = participant.attendedAt.toLocaleDateString("en-US", {
+      const date = participant.attendedAt.toLocaleString("en-PH", {
+        timeZone: "Asia/Manila",
         month: "short",
         day: "numeric",
         hour: "numeric",
         minute: "2-digit",
+        hour12: true,
       });
       return {
         error: `Your attendance was already marked on ${date}. See you at the seminar!`,
@@ -232,11 +234,13 @@ export async function selfCheckIn(email: string, token: string) {
       };
 
     if (participant.attendedAt) {
-      const date = participant.attendedAt.toLocaleDateString("en-US", {
+      const date = participant.attendedAt.toLocaleString("en-PH", {
+        timeZone: "Asia/Manila",
         month: "short",
         day: "numeric",
         hour: "numeric",
         minute: "2-digit",
+        hour12: true,
       });
       return {
         error: `You were already checked in on ${date}.`,

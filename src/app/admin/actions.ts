@@ -181,14 +181,17 @@ export async function getParticipants(
       course: p.course,
       status: deriveStatus(p),
       timestamp: p.attendedAt
-        ? p.attendedAt.toLocaleDateString("en-US", {
+        ? p.attendedAt.toLocaleString("en-PH", {
+            timeZone: "Asia/Manila",
             month: "short",
             day: "numeric",
             hour: "numeric",
             minute: "2-digit",
+            hour12: true,
           })
         : undefined,
-      registeredAt: p.registeredAt.toLocaleDateString("en-US", {
+      registeredAt: p.registeredAt.toLocaleString("en-PH", {
+        timeZone: "Asia/Manila",
         month: "short",
         day: "numeric",
         year: "numeric",
