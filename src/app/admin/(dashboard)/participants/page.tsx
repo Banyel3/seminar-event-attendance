@@ -391,6 +391,25 @@ export default function ParticipantsPage() {
           </div>
         </div>
 
+        {/* Results summary */}
+        <div className="px-4 py-2 border-b border-slate-100 bg-white flex items-center gap-2 text-sm">
+          <span className="font-semibold text-slate-800">{displayed.length}</span>
+          <span className="text-slate-500">
+            {displayed.length === 1 ? "result" : "results"} found
+            {filterCourse || filterYear || filterStatus || searchTerm ? " for " : ""}
+            {filterCourse && <span className="font-medium text-slate-700">{filterCourse}</span>}
+            {filterCourse && filterYear && <span className="text-slate-400"> · </span>}
+            {filterYear && <span className="font-medium text-slate-700">Year {filterYear}</span>}
+            {(filterCourse || filterYear) && filterStatus && <span className="text-slate-400"> · </span>}
+            {filterStatus && <span className="font-medium text-slate-700">{filterStatus}</span>}
+            {(filterCourse || filterYear || filterStatus) && searchTerm && <span className="text-slate-400"> · </span>}
+            {searchTerm && <span className="font-medium text-slate-700">&ldquo;{searchTerm}&rdquo;</span>}
+          </span>
+          {(filterCourse || filterYear || filterStatus || searchTerm) && (
+            <span className="text-xs text-slate-400 ml-auto">{participants.length} total</span>
+          )}
+        </div>
+
         {/* Table */}
         <div className="overflow-x-auto flex-1">
           {loading ? (
@@ -493,8 +512,8 @@ export default function ParticipantsPage() {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-100 text-xs text-slate-500 rounded-b-xl">
-          <span>Showing {displayed.length} of {participants.length} participants</span>
+        <div className="p-4 border-t border-slate-100 text-xs text-slate-400 rounded-b-xl">
+          <span>{participants.length} total participants registered</span>
         </div>
       </div>
 
