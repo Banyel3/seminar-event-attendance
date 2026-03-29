@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter, FileEdit, Trash2, Loader2 } from "lucide-react";
+import { Plus, Search, FileEdit, Trash2, Loader2, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -130,6 +131,31 @@ export default function ParticipantsPage() {
     return true;
   });
 
+  // ── Excel export ────────────────────────────────────────────────────
+  const exportToExcel = () => {
+    const toRow = (p: ParticipantRow) => ({
+      Name: p.name,
+      Email: p.email,
+      Section: p.section ?? "",
+      Course: p.course ?? "",
+      Status: p.status,
+      "Time In": p.timestamp ?? "",
+    });
+
+    // Base pool: whatever the current course/year/search filters show
+    const attended  = displayed.filter((p) => p.status === "Attended");
+    const evaluated = displayed.filter((p) => p.status === "Evaluated");
+    const total     = displayed.filter((p) => p.status === "Attended" || p.status === "Evaluated");
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(attended.map(toRow)),  "Attended");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(evaluated.map(toRow)), "Evaluated");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(total.map(toRow)),     "Total Attendance");
+
+    const timestamp = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `attendance-${timestamp}.xlsx`);
+  };
+
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -246,7 +272,16 @@ export default function ParticipantsPage() {
           </p>
         </div>
 
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={exportToExcel}
+            className="gap-2 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+          >
+            <Download className="w-4 h-4" /> Export
+          </Button>
+
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-transform active:scale-95 text-sm gap-2">
               <Plus className="w-4 h-4" /> Add Participant
@@ -342,6 +377,7 @@ export default function ParticipantsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div> {/* end flex gap-2 wrapper */}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col">
